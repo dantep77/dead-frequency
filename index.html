@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dead Frequency</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="hud" class="hidden">
+  <div id="scope" class="hidden"><div id="scope-ret"></div><svg id="scope-crack" viewBox="0 0 100 100" preserveAspectRatio="none"></svg></div>
+  <div id="vignette"></div>
+  <div id="dot"></div>
+  <div id="tl"><div id="tapes">CASSETTES 0 / 10</div><div id="signal"><span></span><span></span><span></span><span></span><span></span><em>CH 9</em></div><div id="objective"></div></div>
+  <div id="bl">
+    <div id="status"></div>
+    <div id="healthbar"><i id="health"></i></div>
+    <div id="staminabar"><i id="stamina"></i></div>
+  </div>
+  <div id="msgs"></div>
+  <div id="prompt"></div>
+  <div id="busy" class="hidden"><i></i><span></span></div>
+  <div id="inspect" class="hidden"></div>
+  <div id="radio"></div>
+  <div id="subs"><div id="subs-head"></div><div id="subs-text"></div></div>
+</div>
+
+<div id="inventory" class="panel hidden"></div>
+<div id="map" class="panel hidden"><h2>BELLWETHER — COUNTY SURVEY SHEET</h2><canvas id="mapc" width="640" height="640"></canvas><p class="dim">[M] or [Esc] to close · your position is marked · cassettes are not — use the receiver</p></div>
+<div id="note" class="panel hidden"><h2 id="note-title"></h2><pre id="note-text"></pre><p class="dim">[F] or [Esc] to put it away</p></div>
+
+<div id="menu" class="screen">
+  <div class="title"><h1>DEAD FREQUENCY</h1><p class="tag">Bellwether County · Quarantine Zone 4 · Channel 9</p></div>
+  <div class="menu-col" id="menu-main">
+    <button data-act="new">NEW RUN</button>
+    <label class="seed">Town seed <input id="seed" placeholder="random" maxlength="12" spellcheck="false"></label>
+    <button data-act="controls">FIELD MANUAL</button>
+    <button data-act="settings">SETTINGS</button>
+    <p class="dim small">Ten cassettes. One gate. A pistol you had better understand.<br>Best played with headphones.</p>
+  </div>
+</div>
+<div id="pause" class="screen hidden">
+  <div class="menu-col"><h2>PAUSED</h2>
+    <button data-act="resume">RESUME</button><button data-act="controls">FIELD MANUAL</button><button data-act="settings">SETTINGS</button><button data-act="abandon">ABANDON RUN</button>
+    <p class="dim small" id="pause-seed"></p></div>
+</div>
+<div id="settings" class="screen hidden"><div class="menu-col wide"><h2>SETTINGS</h2><div id="settings-body"></div><button data-act="back">BACK</button></div></div>
+<div id="controls" class="screen hidden"><div class="menu-col wide"><h2>FIELD MANUAL</h2><div id="controls-body"></div><button data-act="back">BACK</button></div></div>
+<div id="dead" class="screen hidden"><div class="menu-col"><h1 class="red">YOU DIED IN BELLWETHER</h1><p id="dead-text"></p><button data-act="new">NEW RUN</button><button data-act="menu">MAIN MENU</button></div></div>
+<div id="end" class="screen hidden"><div class="menu-col wide"><h2>EXTRACTED</h2><div id="end-text"></div><div id="end-btn" class="hidden"><button data-act="new">NEW RUN</button><button data-act="menu">MAIN MENU</button></div></div></div>
+<div id="loading" class="screen hidden"><div class="menu-col"><h2>SURVEYING BELLWETHER…</h2><p class="dim" id="loading-text"></p></div></div>
+<div id="fade"></div>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
