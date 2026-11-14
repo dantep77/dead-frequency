@@ -1,13 +1,13 @@
-// Day/night cycle: sun & moon light, sky dome, stars, fog. One full day = 24 real minutes.
+// Daylight cycle: the sun drifts between morning and late afternoon and back. There is no night.
 import * as THREE from '../vendor/three.module.js';
-const DAY_SECONDS = 24 * 60;
+const DAY_SECONDS = 24 * 60, DAY_START = 7.5, DAY_END = 16.8;
 const C = (h) => new THREE.Color(h);
 const KEY = { // [zenith, horizon, sun colour]
   night: [C(0x04060c), C(0x0a0f18), C(0x6f86b0)], dusk: [C(0x26304a), C(0xb0603a), C(0xff9a5a)], day: [C(0x5f87b0), C(0xb4c2c8), C(0xfff0d8)],
 };
 export class Sky {
   constructor(scene, renderer, startHour, shadows) {
-    this.scene = scene; this.hour = startHour; this.daylight = 1;
+    this.scene = scene; this.hour = Math.max(DAY_START, Math.min(DAY_END, startHour)); this.dirn = 1; this.daylight = 1;
     this.sun = new THREE.DirectionalLight(0xffffff, 2); this.sun.castShadow = shadows; this.sun.shadow.mapSize.set(2048, 2048);
     const sc = this.sun.shadow.camera; sc.left = -42; sc.right = 42; sc.top = 42; sc.bottom = -42; sc.near = 1; sc.far = 220; this.sun.shadow.bias = -0.0006; this.sun.shadow.normalBias = 0.04;
     scene.add(this.sun, this.sun.target);
@@ -24,7 +24,8 @@ export class Sky {
   }
   clockText() { const h = Math.floor(this.hour), m = Math.floor((this.hour % 1) * 60); return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'); }
   update(dt, pos) {
-    this.hour = (this.hour + dt * 24 / DAY_SECONDS) % 24;
+    // Night was removed at the player's request: time swings between DAY_START and DAY_END instead of wrapping.
+    this.hour += this.dirn * dt * 24 / DAY_SECONDS; if (this.hour >= DAY_END) { this.hour = DAY_END; this.dirn = -1; } else if (this.hour <= DAY_START) { this.hour = DAY_START; this.dirn = 1; }
     const ang = (this.hour - 6) / 24 * 6.2832, elev = Math.sin(ang);                 // sunrise 06:00, sunset 18:00
     const day = THREE.MathUtils.smoothstep(elev, -0.12, 0.3), dusk = Math.max(0, 1 - Math.abs(elev) / 0.3) * (elev > -0.2 ? 1 : 0);
     this.daylight = day;

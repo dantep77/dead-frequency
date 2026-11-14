@@ -99,7 +99,7 @@ export class UI {
       btns.push(['DROP', () => { p.inv.remove(it); g.pickups.spawn(it, p.dropPos()); }]);
       row(R, `${itemLabel(it, true)}  ·  ${itemUnits(it).toFixed(1)}u`, btns);
     }
-    const note = document.createElement('p'); note.className = 'dim small'; note.innerHTML = `Time ${g.sky.clockText()} · Attachments only fit weapons built for them. <kbd>${keyName(g.settings.binds.inventory)}</kbd> closes the pack — the town does not pause while it is open.`; R.appendChild(note);
+    const note = document.createElement('p'); note.className = 'dim small'; note.innerHTML = `Attachments only fit weapons built for them. <kbd>${keyName(g.settings.binds.inventory)}</kbd> closes the pack — the town does not pause while it is open.`; R.appendChild(note);
   }
   drawMap() {
     const g = this.g, L = g.L, c = $('mapc'), x = c.getContext('2d'), k = c.width / SIZE; x.fillStyle = '#b9b39c'; x.fillRect(0, 0, c.width, c.height);
@@ -145,6 +145,6 @@ export class UI {
 <h3>RIFLES</h3><p>AR-15: magazine with ${k('mag')}, charging handle ${k('action')} + mouse, bolt catch ${k('slideStop')}, selector ${k('safety')} (only moves to SAFE when cocked).</p>
 <p>Model 70 / M40A5: hold ${k('action')}; mouse down lifts and draws the bolt, mouse up closes and locks it. The Model 70 loads five rounds through the open action with ${k('loadRound')}; the M40A5 takes a box magazine.</p>
 <h3>WHEN IT STOPS WORKING</h3><p>Worn weapons malfunction. The game will not name the fault. Look at the weapon: is the slide fully forward? Is brass standing in the port? Does the slide move at all? Typical cures, in rising order of trouble: tap the magazine and rack · rack hard, more than once · lock the slide back, strip the magazine, rack until it is clear, reload. A seized action wants several sharp tugs. A revolver that will not turn wants its cylinder opened. A weapon that has come apart is finished — drop it.</p>
-<h3>THE INFECTED</h3><p>They hunt by ear first. A gunshot carries for blocks; a suppressor, a crouch and closed doors all buy you quiet. Heads are small; armor stops pistol rounds; legs slow them. At midday they are sluggish. At night they roam.</p>`;
+<h3>THE INFECTED</h3><p>They hunt by ear first. A gunshot carries for blocks; a suppressor, a crouch and closed doors all buy you quiet. Heads are small; armor stops pistol rounds; legs slow them. Around midday they are sluggish and stand facing the sun.</p>`;
   }
 }

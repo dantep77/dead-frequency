@@ -72,7 +72,7 @@ class Game {
     setTimeout(() => { if (this.state === 'play') { this.ui.msg('Hold [B] to inspect your weapon. Nothing about it is automatic.'); this.ui.msg('[Tab] pack · [M] map · Esc: field manual'); } }, 9000);
   }
   toMenu() { this.disposeRun(); this.state = 'menu'; this.input.enabled = false; this.input.unlock(); this.ui.hud(false); this.ui.setOverlay(null); this.ui.show('menu'); this.ui.fade(0); this.audio.drone(true); }
-  pause() { if (this.state !== 'play') return; this.state = 'pause'; this.input.unlock(); this.ui.show('pause'); document.getElementById('pause-seed').textContent = `Town seed ${this.seed} · ${this.sky.clockText()}`; if (window.speechSynthesis) speechSynthesis.pause(); }
+  pause() { if (this.state !== 'play') return; this.state = 'pause'; this.input.unlock(); this.ui.show('pause'); document.getElementById('pause-seed').textContent = `Town seed ${this.seed}`; if (window.speechSynthesis) speechSynthesis.pause(); }
   resume() { if (this.state !== 'pause') return; this.state = 'play'; this.ui.show(null); this.input.reset(); this.input.lock(); this.last = performance.now(); if (window.speechSynthesis) speechSynthesis.resume(); }
   openOverlay(name) { this.ui.setOverlay(name); this.expectUnlock = this.input.locked; this.input.unlock(); }
   closeOverlay() { this.ui.setOverlay(null); this.input.reset(); this.input.lock(); }
