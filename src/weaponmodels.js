@@ -122,7 +122,7 @@ function longgun(id, p) {
   Object.assign(P, chamberBits(p.shell ? Object.assign({}, M, { brass: M.shell, lead: M.shell }) : M, g, port[0], port[1], port[2], p.shell ? 0.009 : 0.006, p.shell ? 0.05 : 0.045));
   const hand = grp(g); box(hand, M.glove, 0.05, 0.08, 0.06, 0.004, -0.05, 0.05, 0.3); const arm = box(hand, M.sleeve, 0.07, 0.07, 0.36, 0.05, -0.13, 0.25); arm.rotation.set(-0.3, -0.25, 0);
   const lh = grp(P.pumpHand ? P.slide : g); box(lh, M.glove, 0.06, 0.05, 0.08, -0.005, by - 0.06, rz - rl / 2 - 0.2); const la = box(lh, M.sleeve, 0.07, 0.07, 0.4, -0.12, by - 0.16, rz - rl / 2 - 0.04); la.rotation.set(-0.5, 0.75, 0); P.hand = hand; P.lhand = lh;
-  return { group: g, P, M, travel, muzzle: new THREE.Vector3(0, by, mz), sightY, rearZ, mount: { optic: [by + (p.type === 'ar' || p.noIrons ? 0.025 : 0.018), rz - (p.type === 'ar' ? 0.02 : 0.03), g], rail: [by - (p.type === 'ar' ? 0.03 : 0.045), mz + 0.2], muzzleR: p.barrelR ?? 0.0095 }, magDrop: 0.18, kind: 'long', bolt: p.type === 'bolt' };
+  return { group: g, P, M, travel, muzzle: new THREE.Vector3(0, by, mz), sightY, rearZ, mount: { optic: [by + (p.type === 'ar' || p.noIrons ? 0.025 : 0.018), rz - (p.type === 'ar' ? 0.02 : 0.03), g], rail: [by - (p.type === 'ar' ? 0.03 : 0.045), mz + 0.2], muzzleR: p.barrelR ?? 0.0095 }, magDrop: 0.18, kind: 'long', bolt: p.type === 'bolt', eyeZ: rz + rl / 2 };
 }
 
 const SPEC = {

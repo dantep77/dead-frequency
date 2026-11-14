@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "test": "node tests/firearm.test.mjs && node tests/worldgen.test.mjs"
+    "test": "node tests/firearm.test.mjs && node tests/worldgen.test.mjs",
+    "test:e2e": "node tests/e2e.cjs"
   },
   "license": "MIT"
 }

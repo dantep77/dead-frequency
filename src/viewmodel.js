@@ -34,7 +34,7 @@ export class ViewModel {
       this.grabK += ((f.grabbed ? 1 : 0) - this.grabK) * Math.min(1, dt * 10);
       const wantOpen = f.cyl && (f.cylOpen || f.gateOpen) ? 1 : 0; this.openK += (wantOpen - this.openK) * Math.min(1, dt * 8);
       let px = long ? 0.1 : 0.115, py = long ? -0.155 : -0.135, pz = long ? -0.27 : -0.36, rx = 0, ry = 0.05, rz = 0;
-      const ax = 0, ay = -sightY, az = long ? -0.13 - m.rearZ : -0.3 - m.rearZ;
+      const ax = 0, ay = -sightY, az = long ? -0.11 - m.eyeZ : -0.3 - m.rearZ;   // long guns: eye just behind the receiver, never inside it
       px += (ax - px) * a; py += (ay - py) * a; pz += (az - pz) * a; ry *= 1 - a;
       px += bobX * (1 - a * 0.9); py -= bobY * (1 - a * 0.9);
       const s = this.sprintK * (1 - ins); px += 0.03 * s; py -= 0.07 * s; rx -= 0.45 * s; ry += 0.5 * s;

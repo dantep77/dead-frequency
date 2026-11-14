@@ -31,7 +31,7 @@ function itemMesh(it) {
 export class Pickups {
   constructor(game, scene, L) {
     this.g = game; this.scene = scene; this.entries = []; this.extra = [];
-    this.containers = L.containers.map(c => { const p = L.props[c.prop], fp = PROPS[p.kind].fp, w = p.rot & 1 ? fp[1] : fp[0], d = p.rot & 1 ? fp[0] : fp[1]; return { ...c, opened: false, x: p.x + w / 2, z: p.z + d / 2, y: Math.min(1.2, c.slots[0].y + 0.3), name: NAMES[c.kind] || c.kind, items: [] }; });
+    this.containers = L.containers.map(c => { const p = L.props[c.prop], fp = PROPS[p.kind].fp, w = p.rot & 1 ? fp[1] : fp[0], d = p.rot & 1 ? fp[0] : fp[1]; const top = Math.max(...PROPS[p.kind].boxes.map(q => q[4])); return { ...c, opened: false, x: p.x + w / 2, z: p.z + d / 2, y: Math.min(1.2, c.slots[0].y + 0.3), x0: p.x + 0.1, z0: p.z + 0.1, x1: p.x + w - 0.1, z1: p.z + d - 0.1, top: Math.min(top, 1.9), name: NAMES[c.kind] || c.kind, items: [] }; });
     for (const it of L.items) {
       let item = it.item;
       if (item.kind === 'weapon') { const r = new RNG(item.seed); item = new Firearm(item.id).randomize(r); if (item.id === 'm40' && r.chance(0.75)) item.att.optic = { kind: 'att', id: 'scope10', cond: +r.range(0.3, 1).toFixed(2) }; }
@@ -66,7 +66,13 @@ export class Pickups {
     };
     for (const e of this.entries) if (!e.hidden && Math.abs(e.x - eye.x) < 3 && Math.abs(e.z - eye.z) < 3) test(e.x, e.y + 0.04, e.z, 2.4, 0.95, 'item', e, () => (e.item.kind === 'note' ? 'Read: ' + NOTES[e.item.id].title : 'Take ' + itemLabel(e.item)));
     for (const t of this.tapes) if (!t.taken) test(t.x, t.y + 0.03, t.z, 2.6, 0.93, 'tape', t, 'Take cassette');
-    for (const c of this.containers) if (!c.opened && Math.abs(c.x - eye.x) < 4 && Math.abs(c.z - eye.z) < 4) test(c.x, c.y, c.z, 2.7, 0.9, 'container', c, 'Search ' + c.name);
+    // containers: aim anywhere at the object itself (nearest point of its body), not at a point buried inside it
+    for (const c of this.containers) if (!c.opened && Math.abs(c.x - eye.x) < 6 && Math.abs(c.z - eye.z) < 6) {
+      const x = Math.max(c.x0, Math.min(eye.x, c.x1)), z = Math.max(c.z0, Math.min(eye.z, c.z1)), y = Math.max(0.3, Math.min(eye.y - 0.35, c.top)), dx = x - eye.x, dy = y - eye.y, dz = z - eye.z, d = Math.hypot(dx, dy, dz); if (d > 2.2 || d < 0.05) continue;
+      const cs = (dx * f.x + dy * f.y + dz * f.z) / d; if (cs < 0.8) continue; const s = cs - d * 0.01 - 0.06; if (s <= bestS) continue;
+      const h = W.raycast(eye.x, eye.y, eye.z, dx / d, dy / d, dz / d, d - 0.05, null); if (h && h.box && !this.g.wb.propCols[c.prop].includes(h.box)) continue;
+      bestS = s; best = { type: 'container', ref: c, label: 'Search ' + c.name };
+    }
     for (const x of this.extra) if (x.active()) test(x.x, x.y, x.z, x.dist || 3, 0.8, 'extra', x, x.label);
     if (!best || best.type === 'container') {
       const h = W.raycast(eye.x, eye.y, eye.z, f.x, f.y, f.z, 2.5, null);

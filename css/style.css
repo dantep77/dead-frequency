@@ -45,6 +45,6 @@ button { font-family: var(--mono); font-size: 15px; letter-spacing: 3px; color: 
 .capbar { height: 5px; background: #1a1c1a; margin: 4px 0 10px; } .capbar i { display: block; height: 100%; background: var(--acc); }
 #note { width: min(620px, 90vw); background: #cfc9b4; color: #1c1b17; } #note pre { white-space: pre-wrap; font-family: var(--mono); font-size: 17px; line-height: 1.55; } #note .dim { color: #6b675a; }
 #map { text-align: center; } #mapc { background: #b9b39c; max-width: 80vh; max-height: 72vh; }
-#end-text { text-align: left; font-family: var(--sans); font-size: 19px; line-height: 1.7; max-height: 66vh; overflow-y: auto; } #end-text p { opacity: 0; transition: opacity 2.5s; margin: 0 0 14px; } #end-text p.on { opacity: 1; }
+#end-text { text-align: left; font-family: var(--sans); font-size: 19px; line-height: 1.7; max-height: 56vh; overflow-y: auto; } #end-text p { opacity: 0; transition: opacity 2.5s; margin: 0 0 14px; } #end-text p.on { opacity: 1; }
 #fade { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity 1.2s; z-index: 30; }
 #flash { position: fixed; inset: 0; background: #fff; pointer-events: none; z-index: 12; }
