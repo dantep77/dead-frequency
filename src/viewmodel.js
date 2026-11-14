@@ -1,7 +1,7 @@
 // First-person weapon presentation: rendered in its own pass (never clips into walls),
 // posed from the firearm's real mechanical state.
 import * as THREE from '../vendor/three.module.js';
-import { buildWeaponModel, buildMagModel } from './weaponmodels.js';
+import { buildWeaponModel, buildMagModel, buildRoundsModel } from './weaponmodels.js';
 import { ATTACHMENTS } from './data/weapons.js';
 
 const sm = (x) => x * x * (3 - 2 * x);
@@ -17,7 +17,7 @@ export class ViewModel {
   }
   setWeapon(f) { if (this.model) this.root.remove(this.model.group); this.model = null; this.f = f; if (f) { this.model = buildWeaponModel(f, true); this.root.add(this.model.group); } }
   setHand(item) { if (this.hand) this.root.remove(this.hand.group); this.hand = null; if (item && item.kind === 'mag') { this.hand = buildMagModel(item); this.root.add(this.hand.group); } }
-  handBump() { this.hb = 1; }
+  handBump(cal) { this.hb = 1; if (cal && !this.hand) { this.loose = this.loose || {}; if (this.looseCur) this.looseCur.group.visible = false; this.looseCur = this.loose[cal] || (this.loose[cal] = buildRoundsModel(cal)); if (!this.looseCur.group.parent) this.root.add(this.looseCur.group); this.looseCur.group.visible = true; this.looseT = 0; } }   // a loose round carried to the gun
   kick(back, pitchDeg) { this.kz += back; this.kr += pitchDeg * 0.011; this.flashT = this.f && this.f.suppressed && this.f.att.muzzle.cond > 0.3 ? 0 : 0.05; }
   kickSlide() { if (this.model) this.model.vis.kick = 1; }
   ejectCase(shell) { const c = this.cases.find(c => c.t > 0.8) || this.cases[0]; if (!this.model) return; c.t = 0; c.m.geometry = c.geo[shell ? 1 : 0]; c.m.material = c.mat[shell ? 1 : 0]; c.m.visible = true; this.model.group.updateWorldMatrix(true, false); c.m.position.set(0.012, this.model.sightY - 0.01, 0).applyMatrix4(this.model.group.matrixWorld); c.v.set(1.3 + Math.random() * 0.6, 1.2 + Math.random() * 0.5, 0.2 - Math.random() * 0.4); }
@@ -28,6 +28,9 @@ export class ViewModel {
     for (const c of this.cases) if (c.m.visible) { c.t += dt; c.v.y -= 9.8 * dt; c.m.position.addScaledVector(c.v, dt); c.m.rotation.x += dt * 20; c.m.rotation.z += dt * 13; if (c.t > 0.8) c.m.visible = false; }
     const m = this.model, f = this.f, bobX = Math.sin(p.bob) * 0.005 * Math.min(1, p.speed / 3), bobY = Math.abs(Math.cos(p.bob)) * 0.004 * Math.min(1, p.speed / 3);
     this.sprintK += ((p.sprinting ? 1 : 0) - this.sprintK) * Math.min(1, dt * 8);
+    // the weapon lags slightly behind the view when you turn
+    const cl = (v) => Math.max(-0.05, Math.min(0.05, v)); this.swX = (this.swX || 0) + (cl(-(p.lookDX || 0) * 0.0009) - (this.swX || 0)) * Math.min(1, dt * 9); this.swY = (this.swY || 0) + (cl(-(p.lookDY || 0) * 0.0009) - (this.swY || 0)) * Math.min(1, dt * 9);
+    if (this.looseCur && this.looseCur.group.visible) { this.looseT += dt / 0.36; const k = Math.min(1, this.looseT), e = k * k * (3 - 2 * k), h = this.looseCur.group; h.position.set(-0.15 + 0.17 * e, -0.2 + 0.09 * e, -0.34 + 0.03 * e); h.rotation.set(0.3, 0.5 - 0.4 * e, 0.2); if (k >= 1) h.visible = false; }
     if (m && f) {
       m.sync(dt);
       const long = m.kind === 'long', a = sm(p.aim), ins = sm(Math.min(1, p.inspect)), sightY = m.scopeY ?? m.sightY;
@@ -41,6 +44,7 @@ export class ViewModel {
       const gk = this.grabK * (1 - ins) * (1 - a * 0.6); rz += 0.3 * gk; py += 0.025 * gk; rx += 0.08 * gk;
       const ok = this.openK * (1 - ins); rx += 0.45 * ok; ry -= 0.35 * ok; py += 0.03 * ok; px -= 0.03 * ok;
       if (ins > 0.001) { const ix = long ? -0.16 : -0.07, iy = long ? -0.03 : -0.04, iz = long ? -0.62 : -0.34; px += (ix - px) * ins; py += (iy - py) * ins; pz += (iz - pz) * ins; rx += (0.2 + p.insRot.x - rx) * ins; ry += (-1.25 + p.insRot.y - ry) * ins; rz += (0.3 - rz) * ins; }
+      const sw = (1 - a * 0.75) * (1 - ins); ry += this.swX * sw; rx += this.swY * sw; px += this.swX * 0.25 * sw; py -= this.swY * 0.2 * sw;
       const dr = p.drawT / 0.4; py -= dr * 0.28; rx -= dr * 0.7;
       if (p.busy) { py -= 0.25; rx -= 0.5; }
       if (m.P.stock) m.P.stock.visible = p.aim < 0.55 || ins > 0.1;

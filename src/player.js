@@ -111,7 +111,7 @@ export class Player {
   // ---------- per-frame ----------
   update(dt, inp, active) {
     const g = this.g, W = g.world; if (this.dead) return;
-    const f = this.weapon, grabbing = !!(f && f.grabbed);
+    const f = this.weapon, grabbing = !!(f && f.grabbed); this.lookDX = 0; this.lookDY = 0;
     // ----- look -----
     const zoom = g.zoom || 1, s = 0.0022 * g.settings.sens / zoom;
     const inspecting = active && inp.down('inspect');
@@ -119,7 +119,7 @@ export class Player {
     if (active) {
       if (grabbing) f.drag(inp.dy / 150);
       else if (inspecting) { this.insRot.y += inp.dx * 0.006; this.insRot.x = Math.max(-1.2, Math.min(1.2, this.insRot.x + inp.dy * 0.006)); }
-      else { this.yaw -= inp.dx * s; this.pitch -= inp.dy * s * (g.settings.invertY ? -1 : 1); }
+      else { this.yaw -= inp.dx * s; this.pitch -= inp.dy * s * (g.settings.invertY ? -1 : 1); this.lookDX = inp.dx; this.lookDY = inp.dy; }
     }
     if (!inspecting) { this.insRot.x *= 1 - Math.min(1, dt * 6); this.insRot.y *= 1 - Math.min(1, dt * 6); }
     // recoil impulse then partial recovery
@@ -175,7 +175,7 @@ export class Player {
     if (inp.down('loadRound') && this.loadT <= 0) {
       this.loadT = 0.42;
       if (this.hand && this.hand.kind === 'mag') { const m = this.hand; if (m.rounds >= m.cap) g.ui.msg('Magazine is full.'); else if (this.inv.takeRound(m.cal)) { m.rounds++; g.audio.play('round_in', 0.8); g.vm.handBump(); } else g.ui.msg(`No loose ${CALIBERS[m.cal].name}.`); }
-      else if (f) { if (this.inv.ammo(f.def.cal) <= 0) g.ui.msg(`No loose ${CALIBERS[f.def.cal].name}.`); else if (f.loadRound()) { this.inv.takeRound(f.def.cal); g.vm.handBump(); } else g.audio.play('blocked', 0.5); }
+      else if (f) { if (this.inv.ammo(f.def.cal) <= 0) g.ui.msg(`No loose ${CALIBERS[f.def.cal].name}.`); else if (f.loadRound()) { this.inv.takeRound(f.def.cal); g.vm.handBump(f.def.cal); } else g.audio.play('blocked', 0.5); }
     }
     if (!f || this.drawT > 0) return;
     if (inp.lmbP && !grabbing) f.triggerPull(); if (inp.lmbR || !inp.lmb) f.triggerRelease();

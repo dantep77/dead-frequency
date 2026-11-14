@@ -77,6 +77,11 @@ const SEED = Number(process.argv[2] || 11);
     }
     // ---------- doors ----------
     { const d = g.wb.doors.find(d => !d.open && g.L.reach[Math.floor(d.x) + Math.floor(d.z) * g.L.W]) || g.wb.doors.find(d => !d.open); const pl = P(); pl.pos.x = d.x + (d.v ? 1.2 : 0); pl.pos.z = d.z + (d.v ? 0 : 1.2); pl.pos.y = 0; step(2); lookAt(d.x, 1.1, d.z); const t = use(); step(10); ok('doors open', !!t && t.type === 'door' && d.open && d.box.off); }
+    // ---------- infected batter a closed door open when something behind it draws them ----------
+    { const L = g.L, d = g.wb.doors.find(d => !d.open && !d.d.ext && L.reach[Math.floor(d.v ? d.x - 1 : d.x) + Math.floor(d.v ? d.z : d.z - 1) * L.W] && L.reach[Math.floor(d.v ? d.x + 0.5 : d.x) + Math.floor(d.v ? d.z : d.z + 0.5) * L.W]);
+      if (d) { for (const z of [...g.zombies.list]) g.zombies.kill(z); const ax = d.v ? d.x - 0.5 : d.x, az = d.v ? d.z : d.z - 0.5, bx = d.v ? d.x + 0.5 : d.x, bz = d.v ? d.z : d.z + 0.5; P().pos.x = 5; P().pos.z = 5;
+        const zb = g.zombies.spawn(ax, az, 'standard'); zb.percT = 1e9; zb.state = 'investigate'; zb.tx = bx; zb.tz = bz; zb.fast = true; freezeZ(false); for (let i = 0; i < 160 && !d.open; i++) step(); freezeZ(true);
+        ok('infected batter a closed door open', d.open); g.zombies.kill(zb); } else ok('infected batter a closed door open (no suitable door on this seed — skipped)', true); }
     // ---------- infected: detection, pursuit, damage, armor, death ----------
     {
       const pl = P(); pl.pos.x = g.L.spawn.x; pl.pos.z = g.L.spawn.z; pl.pos.y = 0; pl.pitch = 0; pl.hp = 100; pl.bleed = 0; pl.armor = { kind: 'plate', dur: 100 }; g.sky.hour = 12; step(2);

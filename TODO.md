@@ -36,7 +36,9 @@ Test harness: Playwright is at /opt/node-tools/node_modules; `window.DF` is the 
 - [ ] Buildings are single-storey; "skeletal animation" is jointed procedural rigs, not skinned meshes.
 
 ## 4. Polish backlog
-- [ ] Weapon sway from mouse movement; visible loose round in left hand while loading.
+- [x] Weapon sway from mouse movement; visible loose round in left hand while loading.
+- [x] HUD panels hide under the pack / map / document overlays; larger map with readable labels; brighter exterior walls; start hints use the player's real key bindings.
+- [x] e2e check that infected batter a closed door open (43 checks total).
 - [ ] Boarded windows / more environmental storytelling props; interior light shafts.
 - [ ] Balance pass on damage, zombie speeds, bleed rates, weapon wear rates.
 - [ ] Optional: publish a single-file build as an Artifact so it can be played without a local server.

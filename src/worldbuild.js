@@ -151,7 +151,7 @@ export function buildWorld(L, scene) {
       const e = ext ? 0.1 : 0; const c = bx(a0 - e, a1 + e, y0, y1, -t, t); world.add(...c, B ? (B.mat === 'plaster' ? 'brick' : B.mat) : 'wood');
       const intC = INTERIOR[b % INTERIOR.length], sh = B.tint + 0.5;
       const halves = [[-t, 0, inA], [0, t, inB]];
-      for (const [o0, o1, inside] of halves) { const v = bx(a0 - e, a1 + e, y0, y1, o0, o1); if (inside) bat.box(...v, 'plaster', intC, sh); else bat.box(...v, B.mat, B.color, 1); }
+      for (const [o0, o1, inside] of halves) { const v = bx(a0 - e, a1 + e, y0, y1, o0, o1); if (inside) bat.box(...v, 'plaster', intC, sh); else bat.box(...v, B.mat, B.color, 1.22); }
     };
     if (code === E.WALL) solid(0, h, true);
     else if (code === E.DOOR) solid(2.1, h, false);

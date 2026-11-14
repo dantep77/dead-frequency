@@ -69,7 +69,7 @@ export class UI {
   }
 
   // ---------- overlays ----------
-  setOverlay(name) { this.overlay = name; for (const o of ['inventory', 'map', 'note']) $(o).classList.toggle('hidden', o !== name); if (name === 'inventory') this.renderInventory(); if (name === 'map') this.drawMap(); }
+  setOverlay(name) { this.overlay = name; for (const id of ['tl', 'carry', 'msgs', 'bl']) $(id).style.visibility = name ? 'hidden' : ''; for (const o of ['inventory', 'map', 'note']) $(o).classList.toggle('hidden', o !== name); if (name === 'inventory') this.renderInventory(); if (name === 'map') this.drawMap(); }
   showNote(id) { $('note-title').textContent = NOTES[id].title; $('note-text').textContent = NOTES[id].text; this.g.openOverlay('note'); }
   renderInventory() {
     const g = this.g, p = g.player, el = $('inventory'), f = p.weapon; el.innerHTML = '';
@@ -107,10 +107,10 @@ export class UI {
     const tint = { park: '#a9b38a', school: '#b3a48c', warehouse: '#a5a59c', civic: '#b0aa98', residential: '#b6b196', commercial: '#b3ab95', gas: '#b3ab95' };
     for (const b of L.blocks) { x.fillStyle = tint[b.type]; x.fillRect(b.x * k, b.z * k, 56 * k, 56 * k); }
     x.fillStyle = '#5c5a50'; for (const b of L.buildings) x.fillRect(b.x * k, b.z * k, b.w * k, b.d * k);
-    x.fillStyle = '#2f2e29'; x.font = '11px "Courier New"'; x.textAlign = 'center'; for (const b of L.blocks) if (b.type !== 'residential') x.fillText(b.label.toUpperCase(), (b.x + 28) * k, (b.z + 30) * k);
-    x.font = '9px "Courier New"'; for (const b of L.buildings) if (b.name && b.w * b.d > 100) x.fillText(b.name.split(' ').slice(0, 2).join(' '), (b.x + b.w / 2) * k, (b.z - 1.5) * k);
+    x.fillStyle = '#2f2e29'; x.font = 'bold 15px "Segoe UI", Arial, sans-serif'; x.textAlign = 'center'; for (const b of L.blocks) if (b.type !== 'residential') x.fillText(b.label.toUpperCase(), (b.x + 28) * k, (b.z + 30) * k);
+    x.font = '11px "Segoe UI", Arial, sans-serif'; for (const b of L.buildings) if (b.name && b.w * b.d > 100) x.fillText(b.name.split(' ').slice(0, 2).join(' '), (b.x + b.w / 2) * k, (b.z - 1.5) * k);
     x.strokeStyle = '#3a3a34'; x.lineWidth = 3; x.strokeRect(1, 1, c.width - 2, c.height - 2);
-    const mark = (px, pz, col, label) => { x.fillStyle = col; x.beginPath(); x.arc(px * k, pz * k, 5, 0, 6.28); x.fill(); x.font = 'bold 10px "Courier New"'; x.fillText(label, px * k, pz * k - 9); };
+    const mark = (px, pz, col, label) => { x.fillStyle = col; x.beginPath(); x.arc(px * k, pz * k, 5, 0, 6.28); x.fill(); x.font = 'bold 14px "Segoe UI", Arial, sans-serif'; x.fillText(label, Math.max(70, Math.min(c.width - 70, px * k)), Math.max(22, pz * k - 10)); };
     mark(L.extraction.x, L.extraction.z, '#7a2a1c', 'EXTRACTION GATE'); mark(L.checkpoint.x, L.checkpoint.z, '#4a5140', 'CHECKPOINT 4');
     const p = g.player; x.save(); x.translate(p.pos.x * k, p.pos.z * k); x.rotate(-p.yaw); x.fillStyle = '#14140f'; x.beginPath(); x.moveTo(0, -9); x.lineTo(6, 7); x.lineTo(0, 3); x.lineTo(-6, 7); x.closePath(); x.fill(); x.restore();
   }
