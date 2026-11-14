@@ -24,9 +24,9 @@ class Game {
   constructor() {
     this.settings = loadSettings(); this.canvas = document.getElementById('game');
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, powerPreference: 'high-performance' });
-    this.renderer.outputColorSpace = THREE.SRGBColorSpace; this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.18; this.renderer.shadowMap.enabled = true; this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; this.renderer.autoClear = false;
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace; this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.0; this.renderer.shadowMap.enabled = true; this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; this.renderer.autoClear = false;
     this.scene = new THREE.Scene(); this.camera = new THREE.PerspectiveCamera(this.settings.fov, 16 / 9, 0.06, 1200); this.camera.rotation.order = 'YXZ'; this.scene.add(this.camera);
-    this.spot = new THREE.SpotLight(0xfff1d6, 0, 40, 0.5, 0.7, 2); this.spot.position.set(0.12, -0.12, 0); this.camera.add(this.spot, this.spot.target); this.spot.target.position.set(0, 0, -1);
+    this.spot = new THREE.SpotLight(0xfff1d6, 0, 40, 0.5, 0.7, 1.3); this.spot.position.set(0.12, -0.12, 0); this.camera.add(this.spot, this.spot.target); this.spot.target.position.set(0, -0.1, -1);
     this.muzzle = new THREE.PointLight(0xffc880, 0, 18, 1.6); this.muzzle.position.set(0.1, -0.05, -0.6); this.camera.add(this.muzzle);
     const dc = document.createElement('canvas'); dc.width = dc.height = 16; const dg = dc.getContext('2d'), gr = dg.createRadialGradient(8, 8, 0, 8, 8, 8); gr.addColorStop(0, '#fff'); gr.addColorStop(0.4, 'rgba(255,40,20,1)'); gr.addColorStop(1, 'rgba(255,0,0,0)'); dg.fillStyle = gr; dg.fillRect(0, 0, 16, 16);
     this.laser = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(dc), depthTest: false, sizeAttenuation: false, transparent: true, fog: false })); this.laser.scale.setScalar(0.012); this.laser.visible = false; this.scene.add(this.laser);
@@ -172,15 +172,15 @@ class Game {
     this.camera.rotation.set(p.pitch, p.yaw, (Math.random() - 0.5) * sh * 0.05 + (p.limp ? Math.sin(p.bob * 0.5) * 0.012 : 0));
     this.ui.scope(!!(opt && opt.zoom > 1 && p.aim > 0.9 && this.state === 'play'), f && f.att.optic ? f.att.optic.cond : 1);
     // systems
-    this.sky.update(dt, p.pos); this.wb.tick(this.time, dt);
-    if (this.state === 'play') { this.zombies.update(dt); this.ballistics.update(dt); this.pickups.update(dt, this.time); this.updateExtraction(dt); this.tapes.update(dt); }
+    this.sky.update(dt, p.pos); this.wb.tick(this.time, dt, p.pos.x, p.pos.z);
+    if (this.state === 'play') { this.zombies.update(dt); this.ballistics.update(dt); this.pickups.update(dt, this.time, p.pos.x, p.pos.z); this.updateExtraction(dt); this.tapes.update(dt); }
     const fw = p.forward(), eye = p.eye;
     this.target = active ? this.pickups.findTarget(eye, fw) : null;
     if (active && inp.hit('interact')) this.interact();
     // lights: flashlight (weapon light if mounted, otherwise a weak penlight), muzzle flash, laser
     const rail = f && f.att.rail; let li = 0; this.lightActive = false;
-    if (p.lightOn) { if (rail && rail.id === 'light') { const c = rail.cond, fl = c < 0.45 ? (Math.sin(this.time * 37) + Math.sin(this.time * 61.3) + Math.sin(this.time * 13.7) > (c - 0.1) * 5 - 1.4 ? 0.15 : 1) : 1; li = c < 0.08 ? 0 : 170 * (0.35 + 0.65 * c) * fl; this.spot.angle = 0.52; this.spot.distance = 55; } else { li = 30; this.spot.angle = 0.34; this.spot.distance = 18; } this.lightActive = li > 5; }
-    this.spot.intensity = li; this.muzzleT -= dt; this.muzzle.intensity = this.muzzleT > 0 ? 45 : 0;
+    if (p.lightOn) { if (rail && rail.id === 'light') { const c = rail.cond, fl = c < 0.45 ? (Math.sin(this.time * 37) + Math.sin(this.time * 61.3) + Math.sin(this.time * 13.7) > (c - 0.1) * 5 - 1.4 ? 0.15 : 1) : 1; li = c < 0.08 ? 0 : 900 * (0.35 + 0.65 * c) * fl; this.spot.angle = 0.52; this.spot.distance = 70; } else { li = 210; this.spot.angle = 0.38; this.spot.distance = 28; } this.lightActive = li > 5; }
+    this.spot.intensity = li; this.muzzleT -= dt; this.muzzle.intensity = this.muzzleT > 0 ? 140 : 0;
     let lz = false; if (rail && rail.id === 'laser' && p.laserOn && rail.cond > 0.1 && p.drawT <= 0 && !(rail.cond < 0.4 && Math.sin(this.time * 43) + Math.sin(this.time * 29) > rail.cond * 3)) { const h = this.world.raycast(eye.x, eye.y, eye.z, fw.x, fw.y, fw.z, 90, null), zh = this.zombies.raycast(eye.x, eye.y, eye.z, fw.x, fw.y, fw.z, h ? h.t : 90), tt = zh ? zh.t : h ? h.t : 0; if (tt > 0.5) { this.laser.position.set(eye.x + fw.x * (tt - 0.03), eye.y + fw.y * (tt - 0.03), eye.z + fw.z * (tt - 0.03)); lz = true; } } this.laser.visible = lz;
     const light = Math.min(1, Math.max(0.16, this.sky.daylight * (this.indoor ? 0.5 : 1) + (this.lightActive ? 0.3 : 0) + (this.muzzleT > 0 ? 0.8 : 0)));
     this.vm.update(dt, p, light, this.aspect);

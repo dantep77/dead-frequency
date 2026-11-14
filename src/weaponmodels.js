@@ -89,8 +89,9 @@ function longgun(id, p) {
   box(g, M.steel, p.recvW ?? 0.04, p.recvH ?? 0.055, rl, 0, by - 0.01, rz);                // receiver
   cyl(g, M.steel, p.barrelR ?? 0.0095, bl, 0, by, bz, 'z', 10);
   // stock
-  if (p.pistolGrip) { const gg = grp(g, 0, 0.0, 0.04); gg.rotation.x = 0.3; box(gg, M.grip, 0.03, 0.1, 0.04, 0, -0.045, 0); box(g, M.stock, 0.035, 0.05, 0.24, 0, by - 0.012, rz + rl / 2 + 0.12); box(g, M.stock, 0.036, 0.11, 0.03, 0, by - 0.035, rz + rl / 2 + 0.245); }
-  else { const st = box(g, M.stock, 0.04, 0.06, 0.34, 0, by - 0.05, rz + rl / 2 + 0.15); st.rotation.x = -0.14; box(g, M.stock, 0.038, 0.05, 0.1, 0, -0.012, 0.045, 0.5); box(g, M.dark, 0.04, 0.115, 0.016, 0, by - 0.078, rz + rl / 2 + 0.325, -0.14); }
+  const SG = P.stock = grp(g);   // butt-stock: hidden while aiming, when the eye sits right over the comb
+  if (p.pistolGrip) { const gg = grp(g, 0, 0.0, 0.04); gg.rotation.x = 0.3; box(gg, M.grip, 0.03, 0.1, 0.04, 0, -0.045, 0); box(SG, M.stock, 0.035, 0.05, 0.24, 0, by - 0.012, rz + rl / 2 + 0.12); box(SG, M.stock, 0.036, 0.11, 0.03, 0, by - 0.035, rz + rl / 2 + 0.245); }
+  else { const st = box(SG, M.stock, 0.04, 0.06, 0.34, 0, by - 0.05, rz + rl / 2 + 0.15); st.rotation.x = -0.14; box(g, M.stock, 0.038, 0.05, 0.1, 0, -0.012, 0.045, 0.5); box(SG, M.dark, 0.04, 0.115, 0.016, 0, by - 0.078, rz + rl / 2 + 0.325, -0.14); }
   box(g, M.steel, 0.008, 0.004, 0.06, 0, -0.022, -0.012); box(g, M.steel, 0.008, 0.028, 0.004, 0, -0.008, -0.042);
   P.trigger = grp(g, 0, 0.012, -0.008); box(P.trigger, M.steel, 0.006, 0.022, 0.006, 0, -0.012, 0, -0.25);
   let sightY = by + 0.025, rearZ = rz + rl / 2 - 0.02, travel = 0.08;
@@ -100,7 +101,7 @@ function longgun(id, p) {
     if (p.type === 'pump') { P.slide = grp(g); const f = cyl(P.slide, M.stock, 0.022, 0.17, 0, by - 0.028, rz - rl / 2 - 0.19, 'z', 10); for (let i = 0; i < 6; i++) box(P.slide, M.dark, 0.046, 0.003, 0.004, 0, by - 0.028, rz - rl / 2 - 0.12 - i * 0.026); travel = 0.09; P.pumpHand = true; }
     else { box(g, M.stock, 0.046, 0.045, 0.26, 0, by - 0.026, rz - rl / 2 - 0.15); P.slide = grp(g); cyl(P.slide, M.steel, 0.004, 0.022, 0.03, by + 0.004, port[2], 'x', 6); box(P.slide, M.dark, 0.004, 0.018, 0.06, 0.0205, by + 0.006, port[2] + 0.005); travel = 0.07; }
     if (p.ghost) { box(g, M.dark, 0.004, 0.022, 0.004, 0, by + 0.02, mz + 0.03); box(g, M.sight, 0.0025, 0.004, 0.001, 0, by + 0.029, mz + 0.0325); for (const sx of [-1, 1]) box(g, M.dark, 0.003, 0.014, 0.006, sx * 0.007, by + 0.03, rearZ); box(g, M.dark, 0.017, 0.003, 0.006, 0, by + 0.0215, rearZ); sightY = by + 0.031; }
-    else { cyl(g, M.sight, 0.0025, 0.004, 0, by + 0.0115, mz + 0.012, 'y', 6); box(g, M.steel, 0.008, 0.003, bl * 0.9, 0, by + 0.0095, bz); sightY = by + 0.0185; rearZ = rz; }
+    else { box(g, M.dark, 0.003, 0.016, 0.004, 0, by + 0.017, mz + 0.012); cyl(g, M.sight, 0.003, 0.004, 0, by + 0.026, mz + 0.012, 'y', 6); box(g, M.steel, 0.008, 0.003, bl * 0.9, 0, by + 0.0095, bz); sightY = by + 0.028; rearZ = rz; }
   } else if (p.type === 'ar') {
     box(g, M.frame, 0.044, 0.046, 0.24, 0, by, rz - rl / 2 - 0.13);                         // handguard
     box(g, M.steel, 0.02, 0.006, rl + 0.2, 0, by + 0.022, rz - 0.1);                        // top rail

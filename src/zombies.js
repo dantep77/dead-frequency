@@ -115,7 +115,7 @@ export class Zombies {
     for (let i = 0; i < list.length; i++) {
       const zb = list[i], T = zb.T, dxp = pcx - zb.x, dzp = pcz - zb.z, dp = Math.hypot(dxp, dzp);
       if (dp > 150 && zb.state === 'idle') { zb.B.root.visible = false; continue; }
-      zb.B.root.visible = true;
+      zb.B.root.visible = dp < g.scene.fog.far + 8;
       // ----- perception -----
       zb.percT -= dt;
       if (zb.percT <= 0) {

@@ -30,7 +30,7 @@ function makeTextures() {
   T.dirt = canvasTex(256, (g, s) => { const r = noise(g, s, 195, 70, 9, 2, 2); blotches(g, s, r, 16, '60,45,30', 10, 50, 0.3); });
   T.wood = canvasTex(256, (g, s) => { const r = noise(g, s, 205, 40, 11, 12, 1); g.fillStyle = 'rgba(25,20,15,0.55)'; for (let y = 0; y < s; y += 32) g.fillRect(0, y, s, 2); blotches(g, s, r, 10, '50,40,30', 10, 40, 0.2); });
   T.brick = canvasTex(256, (g, s) => { const r = noise(g, s, 200, 40, 13, 2, 2); for (let row = 0; row < 16; row++) for (let col = 0; col < 8; col++) { g.fillStyle = `rgba(${90 + r() * 60 | 0},${50 + r() * 30 | 0},${40 + r() * 20 | 0},${0.12 + r() * 0.25})`; g.fillRect(col * 32 + (row % 2) * 16, row * 16, 30, 14); } g.fillStyle = 'rgba(210,205,190,0.55)'; for (let row = 0; row < 16; row++) { g.fillRect(0, row * 16 + 14, s, 2); for (let col = 0; col < 9; col++) g.fillRect(col * 32 + (row % 2) * 16 - 2, row * 16, 2, 14); } blotches(g, s, r, 8, '30,30,25', 20, 60, 0.25); });
-  T.plaster = canvasTex(256, (g, s) => { const r = noise(g, s, 215, 26, 15, 3, 3); blotches(g, s, r, 10, '70,65,50', 20, 70, 0.2); blotches(g, s, r, 4, '40,50,30', 20, 50, 0.16); });
+  T.plaster = canvasTex(256, (g, s) => { const r = noise(g, s, 215, 26, 15, 3, 3); blotches(g, s, r, 8, '70,65,50', 20, 70, 0.1); blotches(g, s, r, 3, '40,50,30', 20, 50, 0.08); });
   T.metal = canvasTex(256, (g, s) => { const r = noise(g, s, 205, 36, 17, 8, 1); blotches(g, s, r, 12, '110,60,30', 6, 34, 0.33); g.fillStyle = 'rgba(20,20,20,0.3)'; for (let x = 0; x < s; x += 64) g.fillRect(x, 0, 1, s); });
   T.roof = canvasTex(256, (g, s) => { const r = noise(g, s, 190, 50, 19, 2, 2); g.fillStyle = 'rgba(15,15,15,0.5)'; for (let y = 0; y < s; y += 16) { g.fillRect(0, y, s, 2); for (let x = (y / 16 % 2) * 12; x < s; x += 24) g.fillRect(x, y, 1, 16); } blotches(g, s, r, 12, '60,80,40', 10, 40, 0.3); });
   T.tile = canvasTex(256, (g, s) => { const r = noise(g, s, 210, 30, 21, 2, 2); g.fillStyle = 'rgba(40,40,36,0.6)'; for (let i = 0; i < s; i += 64) { g.fillRect(i, 0, 2, s); g.fillRect(0, i, s, 2); } blotches(g, s, r, 10, '50,45,35', 14, 50, 0.3); });
@@ -110,7 +110,7 @@ function signTexture(text, style) {
 }
 
 const SURF_MAT = [['grass', 0x66783f], ['asphalt', 0x4a4b4d], ['concrete', 0x94928a], ['wood', 0x7a644b], ['tile', 0xa3a39a], ['dirt', 0x77664d]];
-const INTERIOR = [0xc2bba8, 0xb5b9ae, 0xbfb09a, 0xa9b1b5, 0xc4bdb0, 0xb0a892];
+const INTERIOR = [0xd6cfba, 0xc9cdc0, 0xd3c4ac, 0xbdc5c9, 0xd8d1c2, 0xc4bca4];
 
 export function buildWorld(L, scene) {
   const W = L.W, H = L.H, ci = (x, z) => x + z * W;
@@ -149,7 +149,7 @@ export function buildWorld(L, scene) {
     const bx = (p0, p1, y0, y1, o0, o1) => vert ? [line + o0, y0, p0, line + o1, y1, p1] : [p0, y0, line + o0, p1, y1, line + o1];
     const solid = (y0, y1, ext) => {
       const e = ext ? 0.1 : 0; const c = bx(a0 - e, a1 + e, y0, y1, -t, t); world.add(...c, B ? (B.mat === 'plaster' ? 'brick' : B.mat) : 'wood');
-      const intC = INTERIOR[b % INTERIOR.length], sh = B.tint + 0.34;
+      const intC = INTERIOR[b % INTERIOR.length], sh = B.tint + 0.5;
       const halves = [[-t, 0, inA], [0, t, inB]];
       for (const [o0, o1, inside] of halves) { const v = bx(a0 - e, a1 + e, y0, y1, o0, o1); if (inside) bat.box(...v, 'plaster', intC, sh); else bat.box(...v, B.mat, B.color, 1); }
     };
@@ -198,7 +198,7 @@ export function buildWorld(L, scene) {
   for (const inst of L.props) {
     const sh = inst.b >= 0 ? L.buildings[inst.b].tint + 0.4 : 1, cols = [];
     for (const q of propBoxes(inst)) {
-      if (q.col) cols.push(world.add(q.x0, q.y0, q.z0, q.x1, q.y1, q.z1, q.mat, q.y1 - q.y0 < 0.3 || q.mat === 'fabric' ? { thin: true } : undefined));
+      if (q.col) cols.push(world.add(q.x0, q.y0, q.z0, q.x1, q.y1, q.z1, q.mat, { prop: true, thin: q.y1 - q.y0 < 0.3 || q.mat === 'fabric' }));
       if (q.vis) (q.cyl ? bat.cyl : bat.box).call(bat, q.x0, q.y0, q.z0, q.x1, q.y1, q.z1, q.mat, q.color || 0x808080, sh);
     }
     propRt.push(cols);
@@ -274,10 +274,12 @@ export function buildWorld(L, scene) {
   let lamp = null; const mast = L.props.find(p => p.kind === 'mast');
   if (mast) { lamp = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 6), new THREE.MeshBasicMaterial({ color: 0xff2a1a, fog: false })); lamp.position.set(mast.x + 0.5, 26.3, mast.z + 0.5); group.add(lamp); }
 
+  let cullT = 0;
   return {
     world, group, doors, gates, tex, propCols: propRt,
-    tick(t, dt) {
+    tick(t, dt, px = 0, pz = 0) {
       if (lamp) lamp.visible = (t % 2.4) < 0.5;
+      cullT -= dt; if (cullT <= 0) { cullT = 0.5; for (const d of doors) d.pivot.visible = Math.abs(d.x - px) < 90 && Math.abs(d.z - pz) < 90; }
       for (const d of doors) if (d.ang !== d.target) { const k = Math.min(1, dt * 5); d.ang += (d.target - d.ang) * k; if (Math.abs(d.target - d.ang) < 0.01) d.ang = d.target; d.pivot.rotation.y = d.ang; }
       for (const g of gates) if (g.open > 0 && g.open < 1) { g.open = Math.min(1, g.open + dt * 0.22); for (const m of g.leaves) { const off = m.userData.base + m.userData.sgn * g.open * 3.9; if (m.userData.horiz) m.position.x = off; else m.position.z = off; } if (g.open > 0.85) g.col.off = true; }
     },

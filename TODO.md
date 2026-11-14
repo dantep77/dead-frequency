@@ -1,34 +1,37 @@
 # Dead Frequency — status and next steps
 
-## State at end of session 1
-All systems are written. VERIFIED: firearm sim unit tests pass (12 groups); worldgen invariants pass on 40 seeds;
-the game boots in headless Chromium, a run starts (seed 7) and reaches the play state with no console/page errors.
-NOT YET VERIFIED: nothing has been looked at or played. No screenshot was reviewed. Everything below "boots" is untested.
+## State at end of session 2
+VERIFIED by automated tests (`npm test`, and `tests/e2e.cjs` in headless Chromium on seeds 11, 2024 and 303 — 42 checks each):
+- All 10 firearms: picked up from the ground, refuse to fire unloaded, fire after their own procedure using simulated key/mouse input.
+- Stovepipe blocks firing until racked; weapon and attachment wear; catastrophic failure is permanent; weapons drop.
+- Loot pickup, containers, attach/detach (incompatible attachments not offered), dropping items, pack capacity.
+- Doors; infected see, pursue and attack; armor absorbs and wears; gunshots attract; headshot kills; bleeding, bandage, trauma kit.
+- All 10 tapes collectable and play in order; a recording plays to the end; extraction gated on 10/10; beacon, gate, truck, boarding, ending screen.
+- New run after extraction; death screen; new run after death is a different town; pause/resume. No console errors.
+VERIFIED by reviewing screenshots: street, overview, interior, night, all 10 weapons in hip / aim / inspect pose, scope overlay with cracked lens, all 5 infected types.
+NOT VERIFIED: anything on a real GPU (frame rate, texture filtering, light levels), audio (never listened to), feel of the mouse-drag weapon handling, pointer-lock behaviour in a real browser, key rebinding UI, tape narration voice.
 
-Test harness from session 1 (recreate if gone): Playwright is at /opt/node-tools/node_modules; launch Chromium with
-`--use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader`; `window.DF` is the Game object. SwiftShader is
-~1.6 s/frame at full quality, so set localStorage df_settings {shadows:false, renderScale:0.5} and use long screenshot timeouts.
+Bugs found and fixed in session 2: ~40% of shelf/rack loot and most containers could not be targeted (aim point was inside the furniture's collision box); long-gun aim put the camera inside the receiver; guns rendered as black silhouettes (high metalness, no environment map); grass tufts black from behind; light intensities far too low for three.js physical units.
 
-## 1. Visual pass (do first)
-- [ ] Screenshot street, interior, night, overview; fix whatever is wrong (winding, dark interiors, sign facing, ivy, door swing direction, roof gables, gate leaves).
-- [ ] Check each of the 10 weapon models in hip / ADS / inspect pose; verify iron sights line up with screen centre and hands look acceptable.
-- [ ] Check zombie bodies (all 5 types), prone crawler pose, death fall.
-- [ ] Tune light intensities (flashlight, penlight, muzzle flash, night ambient, viewmodel lighting).
+Test harness: Playwright is at /opt/node-tools/node_modules; `window.DF` is the Game object. SwiftShader is slow, so tests replace `DF.render` and call `DF.step()` directly.
 
-## 2. Full-loop automated test (spec section 19)
-- [ ] Drive via window.DF: pick up + manipulate every firearm in-engine, collect all 10 tapes, key beacon, truck arrives, extract, ending shows.
-- [ ] Death -> new run generates a different town; equipment reset.
-- [ ] Zombies: detect, path through doors, attack; armor absorbs; bleed; medkit/bandage.
-- [ ] Loot: take, drop, containers open, attach/detach attachments, pack capacity.
-- [ ] Pointer-lock flows: pause/resume, inventory/map/note overlays, rebinding.
+## 1. Visual pass
+- [x] Screenshot street, interior, night, overview and fix what was wrong.
+- [x] All 10 weapon models in hip / aim / inspect pose; sights sit on screen centre.
+- [x] Infected bodies (all 5 types).
+- [ ] Light levels (flashlight, penlight, night ambient, interiors) were tuned only under the software renderer — re-check on a real GPU.
+- [ ] Door swing direction, roof gables, gate leaves, signs and ivy have not been looked at up close.
+- [ ] Ground shows banding at grazing angles under SwiftShader (mip/anisotropy); confirm whether a real GPU shows it.
 
-## 3. Known risks / likely bugs
-- [ ] Performance: 4,479 meshes / 420k tris in the scene. ~310 loot meshes, ~80 zombies x ~25 meshes, ~400 doors. Consider distance culling for pickups/zombie groups and merging zombie parts. Target 60 fps on a real GPU is unmeasured.
-- [ ] Zombie count seed 7 = 102 (target ~80); tune INDOOR weights in worldgen.js.
-- [ ] Loot quantity (avg ~720 loose rounds per town) is probably too generous; tune loot.js.
+## 2. Full-loop automated test
+- [x] Done — see tests/e2e.cjs. Not covered: zombies opening doors, pointer-lock flows, rebinding, map and document overlays.
+
+## 3. Known risks
+- [x] Mesh count: distance culling for pickups, doors and infected (about 4,500 -> under 500 visible meshes). Real-GPU frame rate still unmeasured.
+- [x] Infected count reduced (avg 47 per town, was 81).
+- [x] Loot ammunition reduced (avg ~560 loose rounds per town, was ~720). Still a guess — needs play balance.
 - [ ] Mouse-drag feel for slide/bolt/pump (player.js: `f.drag(inp.dy / 150)`) is untested by hand.
 - [ ] Tape narration uses the browser's speechSynthesis voice (falls back to a synthesized murmur + subtitles). No recorded actors.
-- [ ] Speech pause/resume on game pause; tape timing when speech is unavailable.
 - [ ] Extraction truck collision box is axis-aligned and approximate.
 - [ ] Buildings are single-storey; "skeletal animation" is jointed procedural rigs, not skinned meshes.
 
@@ -38,13 +41,13 @@ Test harness from session 1 (recreate if gone): Playwright is at /opt/node-tools
 - [ ] Balance pass on damage, zombie speeds, bleed rates, weapon wear rates.
 - [ ] Optional: publish a single-file build as an Artifact so it can be played without a local server.
 
-## 5. Player feedback after first playtest (added, NOT implemented)
+## 5. Player feedback after first playtest
 Overall verdict from the player: the gun system itself is solid; the problem is readability, not mechanics.
 
-- [ ] **Better graphics.** General visual quality needs to come up (no specifics given yet — ask which areas matter most: world, weapons, infected, lighting).
-- [ ] **Guns are too dark to read.** The weapon models are dark-on-dark, so it is hard to tell what the gun is doing at any moment. Likely fixes: brighter/less saturated-black gun materials, stronger viewmodel lighting (especially indoors and at night), more contrast on moving parts (slide, hammer, safety, chamber round, magazine).
-- [ ] **More visibility of weapon status.** Hard to tell the gun's state at a glance. Note this pulls against the original spec ("firearm status should primarily be learned through physical inspection", "do not automatically identify the malfunction") — confirm with the player how far to go before adding a status readout.
-- [ ] **More visibility of inventory status.** Player cannot easily tell what they are carrying (ammo, magazines, meds, pack space) without opening the pack.
-- [ ] **Text is hard to read.** HUD, prompts, subtitles, inspect panel, menus: larger size, higher contrast, possibly a different font than Courier.
-- [ ] **Suggest the next action for the current weapon state.** Contextual hints such as "hammer is down — press H" or "slide locked back — press T". Same spec tension as above: confirm whether hints should also cover malfunctions, and whether they should be toggleable.
-- [ ] **Fewer zombies; more tactical pacing.** Reduce the infected population (currently ~80 average, 102 on seed 7) so encounters are deliberate rather than constant. Tune INDOOR weights, pack count/size and the respawn rule in worldgen.js / zombies.js.
+- [x] **Guns are too dark to read.** Finishes lifted, metalness lowered, viewmodel light floor + rim light, darker contrasting sights/serrations/ejection port.
+- [x] **Text is hard to read.** HUD, prompts, subtitles, inspect panel, inventory and manual now use a sans-serif at larger sizes on solid backing plates.
+- [x] **More visibility of inventory status.** Always-visible carry summary (top right): held weapon, left-hand item, loose rounds of the weapon's calibre, spare magazines, bandages, trauma kits, pack fill.
+- [x] **Fewer zombies; more tactical pacing.** Population roughly halved; reinforcements arrive more slowly and only below 50% of the starting count. Needs a playtest to confirm the feel.
+- [ ] **Better graphics.** Partly addressed (lighting, interiors, gun materials, grass). Still open: ask which areas matter most — world, weapons, infected or lighting. Trees and props are still very low-poly.
+- [ ] **More visibility of weapon status** — OPEN QUESTION, not implemented. Conflicts with the original spec ("firearm status should primarily be learned through physical inspection", "do not automatically identify the malfunction"). Options: (a) a status readout of external, visible state only (safety, hammer, slide position, magazine present) but never chamber/round count/malfunction name; (b) a full readout; (c) an "assist" toggle in Settings, off by default.
+- [ ] **Suggest the next action for the current weapon state** — OPEN QUESTION, not implemented, same conflict. Need to know: should hints cover malfunctions, and should they be toggleable?

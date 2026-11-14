@@ -28,6 +28,7 @@ function itemMesh(it) {
   g.rotation.y = Math.random() * 6.28; return g;
 }
 
+const losF = (b) => !b.see;
 export class Pickups {
   constructor(game, scene, L) {
     this.g = game; this.scene = scene; this.entries = []; this.extra = [];
@@ -49,8 +50,10 @@ export class Pickups {
   add(item, x, y, z) { const mesh = itemMesh(item); mesh.position.set(x, y, z); this.scene.add(mesh); const e = { item, x, y, z, mesh, hidden: false, vy: 0, fall: false }; this.entries.push(e); return e; }
   spawn(item, pos) { const e = this.add(item, pos.x, pos.y, pos.z); e.fall = true; return e; }   // dropped: falls to whatever is below
   remove(e) { this.scene.remove(e.mesh); const i = this.entries.indexOf(e); if (i >= 0) this.entries.splice(i, 1); }
-  open(c) { c.opened = true; for (const e of c.items) { e.hidden = false; e.mesh.visible = true; } this.g.audio.play3d('container', c.x, 1, c.z, 1, 1, 2); this.g.noise(c.x, c.z, 5, 'mech'); if (!c.items.length) this.g.ui.msg('Empty.'); }
-  update(dt, t) {
+  open(c) { c.opened = true; this.cullT = 0; for (const e of c.items) { e.hidden = false; e.mesh.visible = true; } this.g.audio.play3d('container', c.x, 1, c.z, 1, 1, 2); this.g.noise(c.x, c.z, 5, 'mech'); if (!c.items.length) this.g.ui.msg('Empty.'); }
+  update(dt, t, px = 0, pz = 0) {
+    // small objects are only drawn near the player (they are invisible at range anyway)
+    this.cullT = (this.cullT || 0) - dt; if (this.cullT <= 0) { this.cullT = 0.4; for (const e of this.entries) e.mesh.visible = !e.hidden && Math.abs(e.x - px) < 45 && Math.abs(e.z - pz) < 45; for (const tp of this.tapes) if (!tp.taken) tp.mesh.visible = Math.abs(tp.x - px) < 45 && Math.abs(tp.z - pz) < 45; }
     for (const e of this.entries) if (e.fall) { e.vy -= 9.8 * dt; e.y += e.vy * dt; const gr = this.g.world.groundAt(e.x, e.z, 0.1, e.y + 0.1); if (e.y <= gr) { e.y = gr; e.fall = false; e.vy = 0; } e.mesh.position.y = e.y; }
     const on = (t % 1.1) < 0.12; for (const tp of this.tapes) if (!tp.taken) tp.led.visible = on;
     for (const e of this.entries) if (e.item.kind === 'weapon' && e.mesh.userData.model && !e.hidden) { const m = e.mesh.userData.model; if (m.lastAtt !== ['optic', 'rail', 'muzzle'].map(s => e.item.att[s] ? e.item.att[s].id : '-').join()) m.sync(1); }
@@ -61,7 +64,8 @@ export class Pickups {
     const test = (x, y, z, maxD, minCos, type, ref, label) => {
       const dx = x - eye.x, dy = y - eye.y, dz = z - eye.z, d = Math.hypot(dx, dy, dz); if (d > maxD || d < 0.05) return;
       const c = (dx * f.x + dy * f.y + dz * f.z) / d; if (c < minCos) return; const s = c - d * 0.01; if (s <= bestS) return;
-      if (d > 0.5 && !W.los(eye.x, eye.y, eye.z, x - dx / d * 0.12, y + 0.06, z - dz / d * 0.12)) return;
+      // line of sight: walls block; the shelf or rack the item is sitting in does not
+      if (d > 0.5) { const ty = y + 0.06 - eye.y, dd = Math.hypot(dx, ty, dz), h = W.raycast(eye.x, eye.y, eye.z, dx / dd, ty / dd, dz / dd, dd - 0.1, losF); if (h && h.box && !(h.box.prop && dd - h.t < 1.1)) return; }
       bestS = s; best = { type, ref, label: typeof label === 'function' ? label() : label };
     };
     for (const e of this.entries) if (!e.hidden && Math.abs(e.x - eye.x) < 3 && Math.abs(e.z - eye.z) < 3) test(e.x, e.y + 0.04, e.z, 2.4, 0.95, 'item', e, () => (e.item.kind === 'note' ? 'Read: ' + NOTES[e.item.id].title : 'Take ' + itemLabel(e.item)));

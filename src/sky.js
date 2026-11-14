@@ -11,7 +11,7 @@ export class Sky {
     this.sun = new THREE.DirectionalLight(0xffffff, 2); this.sun.castShadow = shadows; this.sun.shadow.mapSize.set(2048, 2048);
     const sc = this.sun.shadow.camera; sc.left = -42; sc.right = 42; sc.top = 42; sc.bottom = -42; sc.near = 1; sc.far = 220; this.sun.shadow.bias = -0.0006; this.sun.shadow.normalBias = 0.04;
     scene.add(this.sun, this.sun.target);
-    this.hemi = new THREE.HemisphereLight(0xbfd0e0, 0x4a4a3a, 1); scene.add(this.hemi);
+    this.hemi = new THREE.HemisphereLight(0xbfd0e0, 0x8f8b7c, 1); scene.add(this.hemi);
     scene.fog = new THREE.Fog(0x9aa7ad, 20, 190);
     this.dome = new THREE.Mesh(new THREE.SphereGeometry(900, 24, 12), new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, fog: false, uniforms: { top: { value: C(0) }, hor: { value: C(0) }, sunDir: { value: new THREE.Vector3() }, sunCol: { value: C(0) }, glow: { value: 1 } },
       vertexShader: 'varying vec3 d; void main(){ d = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
@@ -34,9 +34,9 @@ export class Sky {
     const hor = this.dome.material.uniforms.hor.value.copy(KEY.night[1]).lerp(KEY.day[1], day).lerp(KEY.dusk[1], dusk * 0.75);
     const sc = this.tmp.copy(KEY.dusk[2]).lerp(KEY.day[2], THREE.MathUtils.smoothstep(elev, 0.05, 0.5));
     this.dome.material.uniforms.sunDir.value.copy(dir); this.dome.material.uniforms.sunCol.value.copy(useSun ? sc : KEY.night[2]).multiplyScalar(useSun ? 1 : 0.5); this.dome.material.uniforms.glow.value = useSun ? 1 : 0.25;
-    this.sun.color.copy(useSun ? sc : KEY.night[2]); this.sun.intensity = useSun ? 0.15 + 2.5 * THREE.MathUtils.smoothstep(elev, -0.06, 0.35) : 0.16;
+    this.sun.color.copy(useSun ? sc : KEY.night[2]); this.sun.intensity = useSun ? 0.15 + 2.7 * THREE.MathUtils.smoothstep(elev, -0.06, 0.35) : 0.22;
     this.sun.target.position.set(Math.round(pos.x), 0, Math.round(pos.z)); this.sun.position.copy(this.sun.target.position).addScaledVector(dir, 110);
-    this.hemi.intensity = 0.1 + 1.2 * day; this.hemi.color.copy(top).lerp(hor, 0.5).multiplyScalar(1.2); this.hemi.groundColor.setHex(0x4a4a3a).multiplyScalar(0.4 + 0.6 * day);
+    this.hemi.intensity = 0.2 + 1.9 * day; this.hemi.color.copy(top).lerp(hor, 0.5).multiplyScalar(1.2); this.hemi.groundColor.setHex(0x8f8b7c).multiplyScalar(0.35 + 0.65 * day);
     this.scene.fog.color.copy(hor).multiplyScalar(0.92); this.scene.fog.near = 6 + 24 * day; this.scene.fog.far = 60 + 150 * day;
     this.stars.material.opacity = (1 - day) * 0.9; this.dome.position.set(pos.x, 0, pos.z); this.stars.position.set(pos.x, 0, pos.z);
   }

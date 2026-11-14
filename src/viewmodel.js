@@ -34,7 +34,7 @@ export class ViewModel {
       this.grabK += ((f.grabbed ? 1 : 0) - this.grabK) * Math.min(1, dt * 10);
       const wantOpen = f.cyl && (f.cylOpen || f.gateOpen) ? 1 : 0; this.openK += (wantOpen - this.openK) * Math.min(1, dt * 8);
       let px = long ? 0.1 : 0.115, py = long ? -0.155 : -0.135, pz = long ? -0.27 : -0.36, rx = 0, ry = 0.05, rz = 0;
-      const ax = 0, ay = -sightY, az = long ? -0.11 - m.eyeZ : -0.3 - m.rearZ;   // long guns: eye just behind the receiver, never inside it
+      const ax = 0, ay = -sightY, az = long ? -0.2 - m.eyeZ : -0.3 - m.rearZ;   // long guns: eye just behind the receiver, never inside it
       px += (ax - px) * a; py += (ay - py) * a; pz += (az - pz) * a; ry *= 1 - a;
       px += bobX * (1 - a * 0.9); py -= bobY * (1 - a * 0.9);
       const s = this.sprintK * (1 - ins); px += 0.03 * s; py -= 0.07 * s; rx -= 0.45 * s; ry += 0.5 * s;
@@ -43,6 +43,7 @@ export class ViewModel {
       if (ins > 0.001) { const ix = long ? -0.16 : -0.07, iy = long ? -0.03 : -0.04, iz = long ? -0.62 : -0.34; px += (ix - px) * ins; py += (iy - py) * ins; pz += (iz - pz) * ins; rx += (0.2 + p.insRot.x - rx) * ins; ry += (-1.25 + p.insRot.y - ry) * ins; rz += (0.3 - rz) * ins; }
       const dr = p.drawT / 0.4; py -= dr * 0.28; rx -= dr * 0.7;
       if (p.busy) { py -= 0.25; rx -= 0.5; }
+      if (m.P.stock) m.P.stock.visible = p.aim < 0.55 || ins > 0.1;
       m.group.position.set(px, py, pz + this.kz); m.group.rotation.set(rx + this.kr, ry, rz, 'YXZ');
       const scoped = f.att.optic && ATTACHMENTS[f.att.optic.id].zoom > 1 && p.aim > 0.9; m.group.visible = !scoped;
       this.flashT -= dt; this.flash.visible = this.flashT > 0 && !scoped;
