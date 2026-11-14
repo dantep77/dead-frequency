@@ -8,7 +8,7 @@ const sm = (x) => x * x * (3 - 2 * x);
 export class ViewModel {
   constructor() {
     this.scene = new THREE.Scene(); this.cam = new THREE.PerspectiveCamera(52, 16 / 9, 0.01, 10);
-    this.hemi = new THREE.HemisphereLight(0xdfe6ee, 0x4a463c, 1); this.dir = new THREE.DirectionalLight(0xfff2dd, 1.5); this.dir.position.set(0.4, 1, 0.5); this.scene.add(this.hemi, this.dir);
+    this.hemi = new THREE.HemisphereLight(0xdfe6ee, 0x4a463c, 1); this.dir = new THREE.DirectionalLight(0xfff2dd, 1.5); this.dir.position.set(0.4, 1, 0.5); this.rim = new THREE.DirectionalLight(0xbcd0e8, 0.55); this.rim.position.set(-0.8, 0.3, 0.6); this.scene.add(this.hemi, this.dir, this.rim);
     this.root = new THREE.Group(); this.scene.add(this.root); this.model = null; this.hand = null; this.kz = 0; this.kr = 0; this.flashT = 0; this.hb = 0; this.grabK = 0; this.openK = 0; this.sprintK = 0;
     const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,240,200,1)'); gr.addColorStop(0.4, 'rgba(255,170,60,0.6)'); gr.addColorStop(1, 'rgba(255,120,20,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
     this.flash = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), blending: THREE.AdditiveBlending, depthTest: false, transparent: true })); this.flash.visible = false; this.scene.add(this.flash);
@@ -23,7 +23,7 @@ export class ViewModel {
   ejectCase(shell) { const c = this.cases.find(c => c.t > 0.8) || this.cases[0]; if (!this.model) return; c.t = 0; c.m.geometry = c.geo[shell ? 1 : 0]; c.m.material = c.mat[shell ? 1 : 0]; c.m.visible = true; this.model.group.updateWorldMatrix(true, false); c.m.position.set(0.012, this.model.sightY - 0.01, 0).applyMatrix4(this.model.group.matrixWorld); c.v.set(1.3 + Math.random() * 0.6, 1.2 + Math.random() * 0.5, 0.2 - Math.random() * 0.4); }
   update(dt, p, light, aspect) {
     this.cam.aspect = aspect; this.cam.updateProjectionMatrix();
-    this.hemi.intensity = 0.1 + 1.0 * light; this.dir.intensity = 1.7 * light;
+    this.hemi.intensity = 0.55 + 1.0 * light; this.dir.intensity = 0.7 + 1.9 * light;
     this.kz += (0 - this.kz) * Math.min(1, dt * 14); this.kr += (0 - this.kr) * Math.min(1, dt * 11); this.hb = Math.max(0, this.hb - dt * 5);
     for (const c of this.cases) if (c.m.visible) { c.t += dt; c.v.y -= 9.8 * dt; c.m.position.addScaledVector(c.v, dt); c.m.rotation.x += dt * 20; c.m.rotation.z += dt * 13; if (c.t > 0.8) c.m.visible = false; }
     const m = this.model, f = this.f, bobX = Math.sin(p.bob) * 0.005 * Math.min(1, p.speed / 3), bobY = Math.abs(Math.cos(p.bob)) * 0.004 * Math.min(1, p.speed / 3);
@@ -40,7 +40,7 @@ export class ViewModel {
       const s = this.sprintK * (1 - ins); px += 0.03 * s; py -= 0.07 * s; rx -= 0.45 * s; ry += 0.5 * s;
       const gk = this.grabK * (1 - ins) * (1 - a * 0.6); rz += 0.3 * gk; py += 0.025 * gk; rx += 0.08 * gk;
       const ok = this.openK * (1 - ins); rx += 0.45 * ok; ry -= 0.35 * ok; py += 0.03 * ok; px -= 0.03 * ok;
-      if (ins > 0.001) { const ix = 0.02, iy = long ? -0.06 : -0.075, iz = long ? -0.55 : -0.3; px += (ix - px) * ins; py += (iy - py) * ins; pz += (iz - pz) * ins; rx += (0.2 + p.insRot.x - rx) * ins; ry += (-1.25 + p.insRot.y - ry) * ins; rz += (0.3 - rz) * ins; }
+      if (ins > 0.001) { const ix = long ? -0.16 : -0.07, iy = long ? -0.03 : -0.04, iz = long ? -0.62 : -0.34; px += (ix - px) * ins; py += (iy - py) * ins; pz += (iz - pz) * ins; rx += (0.2 + p.insRot.x - rx) * ins; ry += (-1.25 + p.insRot.y - ry) * ins; rz += (0.3 - rz) * ins; }
       const dr = p.drawT / 0.4; py -= dr * 0.28; rx -= dr * 0.7;
       if (p.busy) { py -= 0.25; rx -= 0.5; }
       m.group.position.set(px, py, pz + this.kz); m.group.rotation.set(rx + this.kr, ry, rz, 'YXZ');

@@ -441,19 +441,19 @@ function tryGenerate(seed, attempt) {
   const far = (x, z, d) => Math.hypot(x - sp.x, z - sp.z) > d;
   const zt = (bias) => rng.weighted([['standard', 55], ['runner', 13], ['crawler', 12], ['bloater', 9], ['armored', bias === 'armored' ? 45 : 8]]);
   const freeCell = (x, z) => inb(x, z) && reach[ci(x, z)] && !L.blocked[ci(x, z)];
-  const INDOOR = { living: 0.22, kitchen: 0.14, bedroom: 0.2, garage: 0.14, sales: 0.75, storeroom: 0.25, office: 0.3, classroom: 0.75, corridor: 2.2, gym: 7, nurse: 0.4, floor: 4, bay: 0.8, dispatch: 0.5, armory: 0.5, clinic: 1.2, hall: 0.5, diner: 0.9, laundry: 0.5, nave: 2.2, bath: 0.06 };
+  const INDOOR = { living: 0.22, kitchen: 0.14, bedroom: 0.2, garage: 0.14, sales: 0.75, storeroom: 0.25, office: 0.3, classroom: 0.75, corridor: 2.2, gym: 5, nurse: 0.4, floor: 3, bay: 0.8, dispatch: 0.5, armory: 0.5, clinic: 1.2, hall: 0.5, diner: 0.9, laundry: 0.5, nave: 2.2, bath: 0.06 };
   for (const room of L.rooms) {
-    let n = INDOOR[room.type] || 0; if (n < 3) n *= 0.5; n = Math.floor(n) + (rng.chance(n % 1) ? 1 : 0);
+    let n = INDOOR[room.type] || 0; if (n < 3) n *= 0.28; n = Math.floor(n) + (rng.chance(n % 1) ? 1 : 0);
     for (let i = 0; i < n; i++) for (let a = 0; a < 8; a++) { const x = rng.int(room.x, room.x + room.w - 1), z = rng.int(room.z, room.z + room.d - 1); if (!freeCell(x, z) || !far(x, z, 38)) continue; L.zombies.push({ x: x + 0.5, z: z + 0.5, type: zt(L.buildings[room.b].type === 'eoc' ? 'armored' : ''), room: room.id }); break; }
   }
-  const packs = rng.int(7, 9);
+  const packs = rng.int(4, 6);
   for (let p = 0; p < packs; p++) for (let a = 0; a < 30; a++) {
     const x = rng.int(4, W - 5), z = rng.int(4, H - 5); if (!freeCell(x, z) || L.cellB[ci(x, z)] || !far(x, z, 55)) continue;
-    const n = rng.int(2, 4), bias = Math.hypot(x - L.checkpoint.x, z - L.checkpoint.z) < 25 ? 'armored' : '';
+    const n = rng.int(2, 3), bias = Math.hypot(x - L.checkpoint.x, z - L.checkpoint.z) < 25 ? 'armored' : '';
     for (let i = 0; i < n; i++) { const xx = x + rng.int(-3, 3), zz = z + rng.int(-3, 3); if (freeCell(xx, zz) && !L.cellB[ci(xx, zz)]) L.zombies.push({ x: xx + 0.5, z: zz + 0.5, type: zt(bias), room: -1 }); }
     break;
   }
-  for (let n = 0; n < 9; n++) for (let a = 0; a < 20; a++) { const x = rng.int(4, W - 5), z = rng.int(4, H - 5); if (!freeCell(x, z) || L.cellB[ci(x, z)] || !far(x, z, 42)) continue; L.zombies.push({ x: x + 0.5, z: z + 0.5, type: zt(''), room: -1 }); break; }
+  for (let n = 0; n < 6; n++) for (let a = 0; a < 20; a++) { const x = rng.int(4, W - 5), z = rng.int(4, H - 5); if (!freeCell(x, z) || L.cellB[ci(x, z)] || !far(x, z, 42)) continue; L.zombies.push({ x: x + 0.5, z: z + 0.5, type: zt(''), room: -1 }); break; }
 
   L.startHour = rng.range(7.5, 15.5);
   return L;

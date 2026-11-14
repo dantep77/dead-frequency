@@ -8,11 +8,14 @@ function box(g, m, w, h, d, x, y, z, rx = 0) { const o = new THREE.Mesh(new THRE
 function cyl(g, m, r, len, x, y, z, axis = 'z', seg = 12, r2) { const o = new THREE.Mesh(new THREE.CylinderGeometry(r2 ?? r, r, len, seg), m); if (axis === 'z') o.rotation.x = Math.PI / 2; else if (axis === 'x') o.rotation.z = Math.PI / 2; o.position.set(x, y, z); g.add(o); return o; }
 const grp = (parent, x = 0, y = 0, z = 0) => { const g = new THREE.Group(); g.position.set(x, y, z); parent.add(g); return g; };
 
+// Gun finishes are lifted well above true black so the mechanism stays readable in the hand;
+// without an environment map, high metalness renders as a featureless silhouette.
+const lift = (c, k = 1.9, add = 22) => { const r = Math.min(255, ((c >> 16) & 255) * k + add), g = Math.min(255, ((c >> 8) & 255) * k + add), b = Math.min(255, (c & 255) * k + add); return (r << 16) | (g << 8) | b; };
 function baseMats(o = {}) {
   return {
-    steel: mat(o.steel ?? 0x2a2c30, 0.4, 0.8), frame: mat(o.frame ?? o.steel ?? 0x2a2c30, o.poly ? 0.75 : 0.45, o.poly ? 0.1 : 0.8), grip: mat(o.grip ?? 0x3a2a1e, 0.8, 0.05),
-    dark: mat(0x0c0d0e, 0.6, 0.4), brass: mat(0xb08a3c, 0.35, 0.9), spent: mat(0x6a5a34, 0.6, 0.7), lead: mat(0x8a5a3a, 0.5, 0.7), sight: new THREE.MeshBasicMaterial({ color: 0xd8d8c8 }),
-    glove: mat(0x26282a, 0.9, 0), sleeve: mat(0x3a4036, 1, 0), shell: mat(0x8a2a22, 0.7, 0.1),
+    steel: mat(lift(o.steel ?? 0x2a2c30), 0.42, 0.3), frame: mat(lift(o.frame ?? o.steel ?? 0x2a2c30, o.poly ? 1.8 : 1.75), o.poly ? 0.8 : 0.5, o.poly ? 0.05 : 0.28), grip: mat(lift(o.grip ?? 0x3a2a1e, 1.5, 10), 0.85, 0.02),
+    dark: mat(0x17181a, 0.55, 0.2), brass: mat(0xb08a3c, 0.35, 0.9), spent: mat(0x6a5a34, 0.6, 0.7), lead: mat(0x8a5a3a, 0.5, 0.7), sight: new THREE.MeshBasicMaterial({ color: 0xd8d8c8 }),
+    glove: mat(0x4a4d48, 0.9, 0), sleeve: mat(0x56604e, 1, 0), shell: mat(0x8a2a22, 0.7, 0.1),
   };
 }
 
@@ -36,7 +39,7 @@ function pistol(id, p) {
   if (p.openTop) { box(P.slide, M.steel, 0.027, 0.012, L, 0, sy - 0.008, zc); box(P.slide, M.steel, 0.027, 0.026, L * 0.42, 0, sy, 0.065 - L * 0.21); box(P.slide, M.steel, 0.027, 0.026, 0.02, 0, sy, front + 0.01); }
   else box(P.slide, M.steel, 0.027, 0.027, L, 0, sy, zc);
   for (let i = 0; i < 5; i++) for (const sx of [-1, 1]) box(P.slide, M.dark, 0.001, 0.02, 0.003, sx * 0.0139, sy, 0.05 - i * 0.007);
-  box(P.slide, M.dark, 0.012, 0.002, 0.03, 0.005, sy + 0.0131, zc + 0.03);                // ejection port
+  box(P.slide, M.dark, 0.013, 0.002, 0.032, 0.005, sy + 0.0131, zc + 0.03); box(P.slide, M.dark, 0.002, 0.012, 0.032, 0.0136, sy + 0.006, zc + 0.03);                // ejection port
   const sh = sy + 0.0135;
   box(P.slide, M.dark, 0.006, 0.006, 0.006, -0.0075, sh + 0.003, 0.058); box(P.slide, M.dark, 0.006, 0.006, 0.006, 0.0075, sh + 0.003, 0.058); box(P.slide, M.dark, 0.021, 0.002, 0.006, 0, sh, 0.058);
   box(P.slide, M.dark, 0.0035, 0.0058, 0.005, 0, sh + 0.003, front + 0.008); box(P.slide, M.sight, 0.0025, 0.0025, 0.001, 0, sh + 0.004, front + 0.0106);
@@ -82,7 +85,7 @@ function revolver(id, p) {
 function longgun(id, p) {
   const M = baseMats(p), g = new THREE.Group(), P = {};
   const by = 0.055, rl = p.recv, bl = p.barrel, rz = -rl / 2 + 0.06, bz = rz - rl / 2 - bl / 2, mz = rz - rl / 2 - bl;
-  M.stock = mat(p.stock ?? 0x4a3524, 0.8, 0.02);
+  M.stock = mat(lift(p.stock ?? 0x4a3524, 1.5, 12), 0.8, 0.02);
   box(g, M.steel, p.recvW ?? 0.04, p.recvH ?? 0.055, rl, 0, by - 0.01, rz);                // receiver
   cyl(g, M.steel, p.barrelR ?? 0.0095, bl, 0, by, bz, 'z', 10);
   // stock
@@ -168,7 +171,7 @@ function syncModel(m, f, dt) {
   const P = m.P, v = m.vis, D = f.def, k = Math.min(1, dt * 22);
   // wear
   const cq = Math.round(f.cond * 40) + (f.broken ? 100 : 0);
-  if (cq !== m.lastCond) { m.lastCond = cq; const w = Math.min(1, Math.max(0, (0.85 - f.cond) / 0.8)); for (const key of ['steel', 'frame']) { m.M[key].color.copy(m.base[key]).lerp(f.broken ? SOOT : RUST, f.broken ? 0.6 : w * 0.75); m.M[key].roughness = 0.4 + w * 0.5; m.M[key].metalness = 0.8 - w * 0.5; } }
+  if (cq !== m.lastCond) { m.lastCond = cq; const w = Math.min(1, Math.max(0, (0.85 - f.cond) / 0.8)); for (const key of ['steel', 'frame']) { m.M[key].color.copy(m.base[key]).lerp(f.broken ? SOOT : RUST, f.broken ? 0.6 : w * 0.75); m.M[key].roughness = 0.42 + w * 0.5; m.M[key].metalness = 0.3 - w * 0.25; } }
   const attKey = ['optic', 'rail', 'muzzle'].map(s => f.att[s] ? f.att[s].id : '-').join();
   if (attKey !== m.lastAtt) { m.lastAtt = attKey; buildAttachments(m, f); }
   // slide / bolt / pump

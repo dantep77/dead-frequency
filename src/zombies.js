@@ -110,7 +110,7 @@ export class Zombies {
     for (const zb of this.corpses) if (zb.deadT < 1) { zb.deadT = Math.min(1, zb.deadT + dt * 2.2); const e = 1 - Math.pow(1 - zb.deadT, 2); if (zb.T.prone) zb.B.body.rotation.z = e * 0.5 * zb.fall; else { zb.B.root.rotation.x = zb.fall * e * 1.5; zb.B.root.position.y = e * 0.14; zb.B.armL.rotation.x = -0.6 * e; zb.B.armR.rotation.x = 0.4 * e; } }
     // reinforcements drift in from the edges so the town never becomes safe
     this.respawnT -= dt;
-    if (this.respawnT <= 0) { this.respawnT = 70 + Math.random() * 40; if (this.list.length < this.initial * 0.7) for (let a = 0; a < 30; a++) { const x = 3 + Math.random() * (this.L.W - 6), z = 3 + Math.random() * (this.L.H - 6), c = (x | 0) + (z | 0) * this.L.W; if (!this.L.reach[c] || this.L.blocked[c] || this.L.cellB[c] || Math.hypot(x - pcx, z - pcz) < 75) continue; this.spawn((x | 0) + 0.5, (z | 0) + 0.5, ['standard', 'standard', 'standard', 'runner', 'crawler', 'bloater'][(Math.random() * 6) | 0]); break; } }
+    if (this.respawnT <= 0) { this.respawnT = 150 + Math.random() * 90; if (this.list.length < this.initial * 0.5) for (let a = 0; a < 30; a++) { const x = 3 + Math.random() * (this.L.W - 6), z = 3 + Math.random() * (this.L.H - 6), c = (x | 0) + (z | 0) * this.L.W; if (!this.L.reach[c] || this.L.blocked[c] || this.L.cellB[c] || Math.hypot(x - pcx, z - pcz) < 75) continue; this.spawn((x | 0) + 0.5, (z | 0) + 0.5, ['standard', 'standard', 'standard', 'runner', 'crawler', 'bloater'][(Math.random() * 6) | 0]); break; } }
     const list = this.list;
     for (let i = 0; i < list.length; i++) {
       const zb = list[i], T = zb.T, dxp = pcx - zb.x, dzp = pcz - zb.z, dp = Math.hypot(dxp, dzp);

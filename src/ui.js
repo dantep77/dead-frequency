@@ -52,7 +52,13 @@ export class UI {
     const tg = g.target, pr = tg && !this.overlay ? `[${keyName(g.settings.binds.interact)}] ${tg.label}` : '';
     if (pr !== this._pr) { this._pr = pr; $('prompt').textContent = pr; $('prompt').style.opacity = pr ? 1 : 0; $('dot').style.opacity = pr ? 1 : 0; }
     $('busy').classList.toggle('hidden', !p.busy); if (p.busy) { $('busy').firstElementChild.style.width = (p.busy.t / p.busy.dur * 100) + '%'; $('busy').lastElementChild.textContent = p.busy.type === 'medkit' ? 'Dressing wounds…' : 'Bandaging…'; }
-    const ins = p.inspect > 0.5 && !this.overlay; $('inspect').classList.toggle('hidden', !ins);
+    // always-visible summary of what is carried (pack contents only — never the gun's internal state)
+    { const w = p.weapon, cal = w ? w.def.cal : null, n = (k, id) => p.inv.items.filter(i => i.kind === k && (!id || i.id === id)).length;
+      let c = `<b>${w ? w.def.name : 'Hands empty'}</b>`; if (p.hand) c += `<br>Left hand: <span>${itemLabel(p.hand)}</span>`;
+      if (w) c += `<br>Loose ${CALIBERS[cal].name}: <span>${p.inv.ammo(cal)}</span>` + (w.def.magType ? ` · Spare mags: <span>${p.inv.mags(w.def.magType).length}</span>` : '');
+      c += `<br>Bandages <span>${n('med', 'bandage')}</span> · Trauma kits <span>${n('med', 'medkit')}</span> · Pack <span>${p.inv.used.toFixed(0)}/${CAPACITY}</span>`;
+      if (c !== this._carry) { this._carry = c; $('carry').innerHTML = c; } }
+    const ins = p.inspect > 0.5 && !this.overlay; $('carry').classList.toggle('hidden', ins); $('inspect').classList.toggle('hidden', !ins);
     if (ins) {
       const f = p.weapon; let h = '';
       if (f) { h += `<h3>${f.def.name} — ${CALIBERS[f.def.cal].name}</h3><p>${f.conditionText()}</p>`; for (const s of ['optic', 'rail', 'muzzle']) if (f.att[s]) h += `<p><span class="k">${ATTACHMENTS[f.att[s].id].name}</span> — ${condWord(f.att[s].cond)}</p>`; h += `<p class="dim">${f.def.desc}</p><p class="dim">Loose ${CALIBERS[f.def.cal].name} in pack: ${p.inv.ammo(f.def.cal)}</p>`; }

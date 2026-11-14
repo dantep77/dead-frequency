@@ -36,7 +36,7 @@ export class Sky {
     this.dome.material.uniforms.sunDir.value.copy(dir); this.dome.material.uniforms.sunCol.value.copy(useSun ? sc : KEY.night[2]).multiplyScalar(useSun ? 1 : 0.5); this.dome.material.uniforms.glow.value = useSun ? 1 : 0.25;
     this.sun.color.copy(useSun ? sc : KEY.night[2]); this.sun.intensity = useSun ? 0.15 + 2.5 * THREE.MathUtils.smoothstep(elev, -0.06, 0.35) : 0.16;
     this.sun.target.position.set(Math.round(pos.x), 0, Math.round(pos.z)); this.sun.position.copy(this.sun.target.position).addScaledVector(dir, 110);
-    this.hemi.intensity = 0.055 + 0.85 * day; this.hemi.color.copy(top).lerp(hor, 0.5).multiplyScalar(1.2); this.hemi.groundColor.setHex(0x4a4a3a).multiplyScalar(0.4 + 0.6 * day);
+    this.hemi.intensity = 0.1 + 1.2 * day; this.hemi.color.copy(top).lerp(hor, 0.5).multiplyScalar(1.2); this.hemi.groundColor.setHex(0x4a4a3a).multiplyScalar(0.4 + 0.6 * day);
     this.scene.fog.color.copy(hor).multiplyScalar(0.92); this.scene.fog.near = 6 + 24 * day; this.scene.fog.far = 60 + 150 * day;
     this.stars.material.opacity = (1 - day) * 0.9; this.dome.position.set(pos.x, 0, pos.z); this.stars.position.set(pos.x, 0, pos.z);
   }

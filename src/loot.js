@@ -30,7 +30,7 @@ const CTX = {
   street: { p: 0.28, w: { ammo: 2, bandage: 1.5, mag: 1, sidearm: 0.45, att: 0.6, primary: 0.25 } },
   park: { p: 0.15, w: { bandage: 2, ammo: 1, note: 1 } },
 };
-const AMMO_N = { '9mm': [6, 15], '.45': [5, 11], '.38': [5, 10], '12ga': [3, 7], '5.56': [8, 20], '.308': [3, 8] };
+const AMMO_N = { '9mm': [5, 12], '.45': [4, 9], '.38': [4, 9], '12ga': [2, 6], '5.56': [6, 15], '.308': [2, 6] };
 const ATT_W = [['reddot', 2], ['scope4', 1.2], ['scope10', 0.5], ['light', 2.5], ['laser', 1.5], ['supp_pistol', 1], ['supp_rifle', 0.7]];
 
 export function assignLoot(L, rng) {
@@ -38,7 +38,7 @@ export function assignLoot(L, rng) {
   L.start = { weapon: startId, seed: rng.int(1, 1e9), spare: rng.int(0, 1), loose: rng.int(4, 14), spareFill: rng.range(0.3, 1) };
   const picks = []; // {pos, cat, container, ctx}
   const roll = (ctx) => { const c = CTX[ctx] || CTX.street; return { c, cat: rng.weighted(Object.entries(c.w)) }; };
-  for (const s of L.spots) { const c = CTX[s.ctx] || CTX.street; if (rng.chance(c.p * 0.42)) picks.push({ pos: s, cat: roll(s.ctx).cat, container: -1 }); }
+  for (const s of L.spots) { const c = CTX[s.ctx] || CTX.street; if (rng.chance(c.p * 0.36)) picks.push({ pos: s, cat: roll(s.ctx).cat, container: -1 }); }
   L.containers.forEach((ct, i) => {
     const c = CTX[ct.ctx] || CTX.street; if (!rng.chance(Math.min(0.92, c.p * 1.15))) return;
     const n = rng.int(1, ct.slots.length);
@@ -48,7 +48,7 @@ export function assignLoot(L, rng) {
   const count = (cat) => picks.filter(p => p.cat === cat).length;
   const free = rng.shuffle(L.spots.filter(s => !picks.some(p => p.pos === s)));
   const ensure = (cat, n) => { while (count(cat) < n && free.length) picks.push({ pos: free.pop(), cat, container: -1 }); };
-  ensure('primary', 3); ensure('sidearm', 3); ensure('medkit', 5); ensure('plate', 2); ensure('note', NOTES.length); ensure('bandage', 10); ensure('att', 6); ensure('ammo', 24); ensure('mag', 8);
+  ensure('primary', 3); ensure('sidearm', 3); ensure('medkit', 5); ensure('plate', 2); ensure('note', NOTES.length); ensure('bandage', 10); ensure('att', 6); ensure('ammo', 20); ensure('mag', 8);
   // weapons first so ammunition can favour calibres that exist in this town
   const cals = [WEAPONS[startId].cal, WEAPONS[startId].cal, WEAPONS[startId].cal], magTypes = WEAPONS[startId].magType ? [WEAPONS[startId].magType, WEAPONS[startId].magType] : [];
   let noteI = 0; const noteOrder = rng.shuffle(NOTES.map((_, i) => i));

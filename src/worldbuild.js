@@ -12,7 +12,7 @@ const WALL_T = 0.2;
 // ---------- procedural textures ----------
 function canvasTex(size, draw, repeat = true) {
   const c = document.createElement('canvas'); c.width = c.height = size; const g = c.getContext('2d'); draw(g, size);
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; if (repeat) t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return t;
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; if (repeat) t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 16; return t;
 }
 function noise(g, s, base, amp, seed = 1, grainX = 1, grainY = 1) {
   const img = g.createImageData(s, s), d = img.data; let r = seed * 9301 + 49297;
@@ -130,7 +130,7 @@ export function buildWorld(L, scene) {
     while (x < W) {
       const s = L.surf[ci(x, z)], inside = L.cellB[ci(x, z)] !== 0, b = L.cellB[ci(x, z)]; let x1 = x + 1;
       while (x1 < W && x1 % CHUNK !== 0 && L.surf[ci(x1, z)] === s && L.cellB[ci(x1, z)] === b) x1++;
-      const [mat, col] = SURF_MAT[s], sc = 1 / TEXM[mat], g = bat.group(mat, (x + x1) / 2, z + 0.5), sh = inside ? 0.6 : 1;
+      const [mat, col] = SURF_MAT[s], sc = 1 / TEXM[mat], g = bat.group(mat, (x + x1) / 2, z + 0.5), sh = inside ? 0.82 : 1;
       const r = ((col >> 16) & 255) / 255 * sh, gg = ((col >> 8) & 255) / 255 * sh, bb = (col & 255) / 255 * sh;
       bat.quad(g, [x, 0, z, x, 0, z + 1, x1, 0, z + 1, x1, 0, z], [0, 1, 0], [x * sc, z * sc, x * sc, (z + 1) * sc, x1 * sc, (z + 1) * sc, x1 * sc, z * sc], r, gg, bb, null);
       x = x1;
@@ -149,7 +149,7 @@ export function buildWorld(L, scene) {
     const bx = (p0, p1, y0, y1, o0, o1) => vert ? [line + o0, y0, p0, line + o1, y1, p1] : [p0, y0, line + o0, p1, y1, line + o1];
     const solid = (y0, y1, ext) => {
       const e = ext ? 0.1 : 0; const c = bx(a0 - e, a1 + e, y0, y1, -t, t); world.add(...c, B ? (B.mat === 'plaster' ? 'brick' : B.mat) : 'wood');
-      const intC = INTERIOR[b % INTERIOR.length], sh = B.tint + 0.12;
+      const intC = INTERIOR[b % INTERIOR.length], sh = B.tint + 0.34;
       const halves = [[-t, 0, inA], [0, t, inB]];
       for (const [o0, o1, inside] of halves) { const v = bx(a0 - e, a1 + e, y0, y1, o0, o1); if (inside) bat.box(...v, 'plaster', intC, sh); else bat.box(...v, B.mat, B.color, 1); }
     };
@@ -174,7 +174,7 @@ export function buildWorld(L, scene) {
     const o = 0.35, x0 = b.x - o, x1 = b.x + b.w + o, z0 = b.z - o, z1 = b.z + b.d + o, h = b.h;
     world.add(b.x, h, b.z, b.x + b.w, h + 0.22, b.z + b.d, 'wood');
     bat.box(x0, h, z0, x1, h + 0.22, z1, 'roof', b.roof, 1);
-    bat.box(b.x + 0.1, h - 0.04, b.z + 0.1, b.x + b.w - 0.1, h, b.z + b.d - 0.1, 'plaster', 0xb5b0a2, b.tint);
+    bat.box(b.x + 0.1, h - 0.04, b.z + 0.1, b.x + b.w - 0.1, h, b.z + b.d - 0.1, 'plaster', 0xb5b0a2, b.tint + 0.28);
     if (b.gable) {
       const yb = h + 0.22, yr = yb + 1.7;
       if (b.w >= b.d) { const zc = (z0 + z1) / 2; bat.free('roof', [x0, yb, z0], [x1, yb, z0], [x1, yr, zc], [x0, yr, zc], [0, 1, -0.5], b.roof); bat.free('roof', [x0, yb, z1], [x1, yb, z1], [x1, yr, zc], [x0, yr, zc], [0, 1, 0.5], b.roof); for (const [xx, nx] of [[b.x - 0.05, -1], [b.x + b.w + 0.05, 1]]) bat.free(b.mat, [xx, yb, z0], [xx, yb, z1], [xx, yr, zc], [xx, yr, zc], [nx, 0, 0], b.color); }
@@ -196,7 +196,7 @@ export function buildWorld(L, scene) {
   // ---------- props ----------
   const propRt = [];
   for (const inst of L.props) {
-    const sh = inst.b >= 0 ? L.buildings[inst.b].tint + 0.2 : 1, cols = [];
+    const sh = inst.b >= 0 ? L.buildings[inst.b].tint + 0.4 : 1, cols = [];
     for (const q of propBoxes(inst)) {
       if (q.col) cols.push(world.add(q.x0, q.y0, q.z0, q.x1, q.y1, q.z1, q.mat, q.y1 - q.y0 < 0.3 || q.mat === 'fabric' ? { thin: true } : undefined));
       if (q.vis) (q.cyl ? bat.cyl : bat.box).call(bat, q.x0, q.y0, q.z0, q.x1, q.y1, q.z1, q.mat, q.color || 0x808080, sh);
@@ -264,8 +264,8 @@ export function buildWorld(L, scene) {
   for (const m of [trunkM, leafM, bushM]) { m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false; group.add(m); }
   bushM.castShadow = false;
   // grass tufts per chunk
-  const tuft = new THREE.BufferGeometry(); { const p = [], u = []; for (const a of [0, Math.PI / 2]) { const c = Math.cos(a) * 0.5, s = Math.sin(a) * 0.5; p.push(-c, 0, -s, c, 0, s, c, 1, s, -c, 0, -s, c, 1, s, -c, 1, -s); u.push(0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1); } tuft.setAttribute('position', new THREE.Float32BufferAttribute(p, 3)); tuft.setAttribute('uv', new THREE.Float32BufferAttribute(u, 2)); const nn = []; for (let i = 0; i < 12; i++) nn.push(0, 1, 0); tuft.setAttribute('normal', new THREE.Float32BufferAttribute(nn, 3)); }
-  const tuftMat = new THREE.MeshStandardMaterial({ map: tex.blade, alphaTest: 0.45, side: THREE.DoubleSide, roughness: 1 });
+  const tuft = new THREE.BufferGeometry(); { const p = [], u = []; for (const a of [0, Math.PI / 2]) { const c = Math.cos(a) * 0.5, s = Math.sin(a) * 0.5; p.push(-c, 0, -s, c, 0, s, c, 1, s, -c, 0, -s, c, 1, s, -c, 1, -s, c, 0, s, -c, 0, -s, c, 1, s, c, 1, s, -c, 0, -s, -c, 1, -s); u.push(0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1); } tuft.setAttribute('position', new THREE.Float32BufferAttribute(p, 3)); tuft.setAttribute('uv', new THREE.Float32BufferAttribute(u, 2)); const nn = []; for (let i = 0; i < 24; i++) nn.push(0, 1, 0); tuft.setAttribute('normal', new THREE.Float32BufferAttribute(nn, 3)); }
+  const tuftMat = new THREE.MeshStandardMaterial({ map: tex.blade, alphaTest: 0.45, roughness: 1 });
   const chunks = Array.from({ length: 16 }, () => []);
   for (let z = 2; z < H - 2; z++) for (let x = 2; x < W - 2; x++) { const c = ci(x, z); if (L.cellB[c]) continue; const s = L.surf[c]; const p = s === SURF.GRASS ? 0.42 : s === SURF.DIRT ? 0.06 : 0.035; if (rng.next() < p) chunks[Math.min(3, (x / CHUNK) | 0) + Math.min(3, (z / CHUNK) | 0) * 4].push([x + rng.next(), z + rng.next(), s === SURF.GRASS ? rng.range(0.35, 0.95) : rng.range(0.25, 0.5), rng.next()]); }
   chunks.forEach((list, k) => { if (!list.length) return; const m = new THREE.InstancedMesh(tuft, tuftMat, list.length); list.forEach((t, i) => { dummy.position.set(t[0], 0, t[1]); dummy.rotation.set(0, t[3] * 6.28, 0); dummy.scale.set(0.9 + t[3], t[2], 0.9 + t[3]); dummy.updateMatrix(); m.setMatrixAt(i, dummy.matrix); color.setHSL(0.2 + t[3] * 0.08, 0.3, 0.42 + t[3] * 0.18); m.setColorAt(i, color); }); m.receiveShadow = true; m.computeBoundingSphere(); group.add(m); });
