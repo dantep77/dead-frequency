@@ -6,7 +6,14 @@ canvas#game { position: fixed; inset: 0; width: 100%; height: 100%; display: blo
 .dim { color: var(--dim); } .small { font-size: 14px; line-height: 1.5; } .red { color: var(--red); }
 #hud { position: fixed; inset: 0; pointer-events: none; font-family: var(--sans); font-size: 17px; text-shadow: 0 0 3px #000, 0 1px 2px #000; }
 #dot { position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; margin: -2px; border-radius: 50%; background: rgba(230, 230, 220, 0.75); opacity: 0; transition: opacity 0.15s; }
-#tl { position: absolute; left: 28px; top: 22px; letter-spacing: 1px; max-width: 26vw; background: rgba(8, 10, 9, 0.55); padding: 8px 12px; }
+#tl { position: absolute; left: 50%; top: 14px; transform: translateX(-50%); letter-spacing: 1px; max-width: 28vw; background: rgba(8, 10, 9, 0.55); padding: 6px 14px; text-align: center; }
+#tl #signal { justify-content: center; }
+#qref { position: absolute; left: 20px; top: 16px; background: rgba(8, 10, 9, 0.62); padding: 8px 12px 8px 10px; font-size: 15px; line-height: 1.2; min-width: 250px; }
+#qref h4 { margin: 0 0 4px; font-size: 12px; letter-spacing: 2px; color: var(--dim); font-weight: 600; }
+#qref h4:not(:first-child) { margin-top: 8px; }
+#qref .r { display: flex; align-items: center; gap: 8px; padding: 2px 0; color: #6f7068; }
+#qref .r kbd { font-family: var(--mono); font-size: 13px; min-width: 46px; text-align: center; border: 1px solid #4a4d44; background: #17191a; color: #7a7b72; padding: 1px 4px; text-shadow: none; }
+#qref .r.on { color: #f2f1e6; } #qref .r.on kbd { border-color: #c4dc8c; background: #2c3a1c; color: #e9f7c4; }
 #tapes { font-size: 19px; font-weight: 600; } #objective { color: #c4dc8c; margin-top: 6px; font-size: 16px; }
 #signal { margin-top: 6px; display: flex; align-items: flex-end; gap: 3px; height: 16px; }
 #signal span { width: 5px; background: #3a3d36; } #signal span.on { background: var(--acc); }
@@ -21,8 +28,8 @@ canvas#game { position: fixed; inset: 0; width: 100%; height: 100%; display: blo
 #prompt { position: absolute; left: 50%; top: 58%; transform: translateX(-50%); font-size: 19px; font-weight: 600; background: rgba(8, 9, 8, 0.8); padding: 6px 14px; border-left: 3px solid var(--acc); opacity: 0; white-space: nowrap; }
 #busy { position: absolute; left: 50%; top: 64%; transform: translateX(-50%); width: 180px; height: 6px; background: #1a1c1a; border: 1px solid #3a3d36; } #busy i { display: block; height: 100%; background: var(--acc); } #busy span { position: absolute; top: 12px; width: 100%; text-align: center; font-size: 15px; }
 #inspect { position: absolute; right: 30px; bottom: 30px; width: 460px; background: var(--bg); border-left: 3px solid var(--acc); padding: 14px 18px; font-size: 16px; line-height: 1.5; } #inspect h3 { margin: 0 0 4px; font-size: 19px; letter-spacing: 1px; } #inspect p { margin: 4px 0; } #inspect .k { color: var(--acc); }
-#radio { position: absolute; left: 50%; top: 4%; transform: translateX(-50%); max-width: 38vw; text-align: center; color: #d6e6b4; font-size: 18px; line-height: 1.4; background: rgba(8, 9, 8, 0.78); padding: 6px 14px; }
-#carry { position: absolute; right: 28px; top: 22px; text-align: right; font-size: 15px; line-height: 1.5; background: rgba(8, 10, 9, 0.6); padding: 6px 12px; } #carry b { font-size: 17px; } #carry span { color: #c4dc8c; }
+#radio { position: absolute; left: 50%; top: 118px; transform: translateX(-50%); max-width: 38vw; text-align: center; color: #d6e6b4; font-size: 18px; line-height: 1.4; background: rgba(8, 9, 8, 0.78); padding: 6px 14px; }
+#carry { position: absolute; right: 20px; top: 16px; max-width: 30vw; text-align: right; font-size: 15px; line-height: 1.5; background: rgba(8, 10, 9, 0.6); padding: 6px 12px; } #carry b { font-size: 17px; } #carry span { color: #c4dc8c; } #carry i { font-style: normal; color: #e6c98a; }
 #subs { position: absolute; left: 50%; bottom: 12%; transform: translateX(-50%); width: min(820px, 80vw); text-align: center; }
 #subs-head { color: #c4dc8c; font-size: 14px; letter-spacing: 2px; margin-bottom: 4px; } #subs-text { font-size: 21px; line-height: 1.45; background: rgba(8, 9, 8, 0.8); padding: 6px 14px; display: inline-block; }
 #subs-text:empty, #radio:empty { display: none; }

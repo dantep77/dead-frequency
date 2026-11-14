@@ -69,7 +69,6 @@ class Game {
     const ex = L.extraction, b = ex.beacon;
     this.pickups.extra.push({ x: b.x, y: 1.0, z: b.z, dist: 2.8, active: () => this.ext.phase < 2, label: () => this.tapeCount >= 10 ? 'Key the extraction beacon' : `Extraction beacon — Control wants all ten cassettes (${this.tapeCount}/10)`, fn: () => this.keyBeacon() });
     this.ui.radio(RADIO.start);
-    setTimeout(() => { if (this.state === 'play') { const k = (a) => keyName(this.settings.binds[a]); this.ui.msg(`Hold [${k('inspect')}] to inspect your weapon. Nothing about it is automatic.`); this.ui.msg(`[${k('inventory')}] pack · [${k('map')}] map · [Esc] pause and field manual`); } }, 9000);
   }
   toMenu() { this.disposeRun(); this.state = 'menu'; this.input.enabled = false; this.input.unlock(); this.ui.hud(false); this.ui.setOverlay(null); this.ui.show('menu'); this.ui.fade(0); this.audio.drone(true); }
   pause() { if (this.state !== 'play') return; this.state = 'pause'; this.input.unlock(); this.ui.show('pause'); document.getElementById('pause-seed').textContent = `Town seed ${this.seed}`; if (window.speechSynthesis) speechSynthesis.pause(); }

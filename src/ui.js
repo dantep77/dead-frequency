@@ -54,10 +54,11 @@ export class UI {
     $('busy').classList.toggle('hidden', !p.busy); if (p.busy) { $('busy').firstElementChild.style.width = (p.busy.t / p.busy.dur * 100) + '%'; $('busy').lastElementChild.textContent = p.busy.type === 'medkit' ? 'Dressing wounds…' : 'Bandaging…'; }
     // always-visible summary of what is carried (pack contents only — never the gun's internal state)
     { const w = p.weapon, cal = w ? w.def.cal : null, n = (k, id) => p.inv.items.filter(i => i.kind === k && (!id || i.id === id)).length;
-      let c = `<b>${w ? w.def.name : 'Hands empty'}</b>`; if (p.hand) c += `<br>Left hand: <span>${itemLabel(p.hand)}</span>`;
+      let c = `<b>${w ? w.def.name : 'Hands empty'}</b>`; if (w) c += '<br>' + this.visibleState(w); if (p.hand) c += `<br>Left hand: <span>${itemLabel(p.hand)}</span>`;
       if (w) c += `<br>Loose ${CALIBERS[cal].name}: <span>${p.inv.ammo(cal)}</span>` + (w.def.magType ? ` · Spare mags: <span>${p.inv.mags(w.def.magType).length}</span>` : '');
       c += `<br>Bandages <span>${n('med', 'bandage')}</span> · Trauma kits <span>${n('med', 'medkit')}</span> · Pack <span>${p.inv.used.toFixed(0)}/${CAPACITY}</span>`;
       if (c !== this._carry) { this._carry = c; $('carry').innerHTML = c; } }
+    this.quickRef(p);
     const ins = p.inspect > 0.5 && !this.overlay; $('carry').classList.toggle('hidden', ins); $('inspect').classList.toggle('hidden', !ins);
     if (ins) {
       const f = p.weapon; let h = '';
@@ -68,8 +69,48 @@ export class UI {
     }
   }
 
+  // What anyone could see by glancing at the weapon from outside. Never the chamber, round count or a diagnosis.
+  visibleState(f) {
+    if (f.broken) return '<i>Destroyed</i>'; const D = f.def, s = [];
+    if (D.action === 'revolver') { s.push(D.revolver === 'da' ? (f.cylOpen ? 'Cylinder <i>open</i>' : 'Cylinder closed') : (f.gateOpen ? 'Gate <i>open</i>' : 'Gate closed')); s.push('Hammer ' + (f.hammer === 2 ? '<i>cocked</i>' : f.hammer === 1 ? '<i>half-cock</i>' : 'down')); return s.join(' · '); }
+    const part = D.action === 'pump' ? 'Action' : D.action === 'bolt' || D.action === 'rifle_semi' || D.action === 'semi_shotgun' ? 'Bolt' : 'Slide';
+    s.push(part + ' ' + (f.slideLocked ? '<i>locked back</i>' : f.slide <= 0.02 ? (D.action === 'pump' || D.action === 'bolt' ? 'closed' : 'forward') : f.slide >= 0.9 ? '<i>open</i>' : '<i>part open</i>'));
+    if (D.extHammer) s.push('Hammer ' + (f.hammer === 2 ? '<i>cocked</i>' : 'down'));
+    if (D.safety && D.safety !== 'none') s.push('Safety ' + (f.safety ? '<i>ON</i>' : 'off'));
+    if (D.feed === 'mag') s.push(f.mag ? 'Magazine in' : '<i>No magazine</i>');
+    return s.join(' · ');
+  }
+  // Quick-reference card (top left): every relevant key, lit when that control can be operated right now.
+  quickRef(p) {
+    const g = this.g, b = g.settings.binds, f = p.weapon, k = (a) => keyName(b[a]), rows = [];
+    const row = (key, label, on) => rows.push(`<div class="r${on ? ' on' : ''}"><kbd>${key}</kbd>${label}</div>`), head = (t) => rows.push(`<h4>${t}</h4>`);
+    const free = !p.busy && p.drawT <= 0, hm = p.hand && p.hand.kind === 'mag' ? p.hand : null;
+    if (f) {
+      const D = f.def, av = f.available({ handMag: hm, loose: p.inv.ammo(D.cal) }), rev = D.action === 'revolver';
+      head(D.name.toUpperCase());
+      row('LMB', 'Trigger', free && av.trigger); row('RMB', 'Aim', free);
+      if (!rev) row(k('action') + ' +\u2195', { pistol: 'Slide', rifle_semi: 'Charging handle', semi_shotgun: 'Bolt handle', pump: 'Pump', bolt: 'Bolt' }[D.action], free && av.action);
+      if (!rev && D.action !== 'bolt') row(k('slideStop'), D.action === 'pump' ? 'Action release' : D.action === 'pistol' ? 'Slide stop' : 'Bolt catch', free && av.slideStop);
+      if (rev || D.feed === 'mag') row(k('mag'), rev ? (D.revolver === 'da' ? 'Cylinder latch' : 'Loading gate') : (f.mag ? 'Magazine out' : 'Magazine in'), free && av.mag);
+      if (rev || D.feed === 'mag') row(k('tap'), rev ? 'Ejector rod' : 'Tap magazine', free && av.tap);
+      row(k('loadRound'), hm ? 'Load round into magazine' : 'Load round', free && (hm ? hm.rounds < hm.cap && p.inv.ammo(hm.cal) > 0 : av.loadRound));
+      if (D.feed === 'mag' || hm) row(k('drawMag'), hm ? 'Stow magazine' : 'Draw magazine', free && (!!hm || p.inv.mags(D.magType).length > 0));
+      if (D.safety && D.safety !== 'none') row(k('safety'), D.safety === 'decocker' ? 'Safety / decock' : 'Safety', free && av.safety);
+      if (rev || D.extHammer) row(k('hammer'), 'Hammer', free && av.hammer);
+      if (rev) row('Wheel', 'Turn cylinder', free && av.wheel);
+      row(k('inspect'), 'Inspect', true);
+    } else { head('HANDS'); if (hm) { row(k('loadRound'), 'Load round into magazine', hm.rounds < hm.cap && p.inv.ammo(hm.cal) > 0); row(k('drawMag'), 'Stow magazine', true); } else row(k('drawMag'), 'Draw magazine', p.inv.mags().length > 0); }
+    head('GENERAL');
+    row(k('interact'), g.target ? g.target.label : 'Interact', !!g.target && !p.busy);
+    row(k('sidearm') + ' / ' + k('primary'), 'Sidearm / primary', !!(p.sidearm || p.primary));
+    row(k('bandage'), 'Bandage', !p.busy && !!p.inv.first('med', 'bandage') && (p.bleed > 0 || p.hp < 100));
+    row(k('medkit'), 'Trauma kit', !p.busy && !!p.inv.first('med', 'medkit') && (p.bleed > 0 || p.limp || p.hp < 100));
+    row(k('inventory') + ' / ' + k('map'), 'Pack / map', true);
+    const h = rows.join(''); if (h !== this._qr) { this._qr = h; $('qref').innerHTML = h; }
+  }
+
   // ---------- overlays ----------
-  setOverlay(name) { this.overlay = name; for (const id of ['tl', 'carry', 'msgs', 'bl']) $(id).style.visibility = name ? 'hidden' : ''; for (const o of ['inventory', 'map', 'note']) $(o).classList.toggle('hidden', o !== name); if (name === 'inventory') this.renderInventory(); if (name === 'map') this.drawMap(); }
+  setOverlay(name) { this.overlay = name; for (const id of ['tl', 'carry', 'msgs', 'bl', 'qref']) $(id).style.visibility = name ? 'hidden' : ''; for (const o of ['inventory', 'map', 'note']) $(o).classList.toggle('hidden', o !== name); if (name === 'inventory') this.renderInventory(); if (name === 'map') this.drawMap(); }
   showNote(id) { $('note-title').textContent = NOTES[id].title; $('note-text').textContent = NOTES[id].text; this.g.openOverlay('note'); }
   renderInventory() {
     const g = this.g, p = g.player, el = $('inventory'), f = p.weapon; el.innerHTML = '';

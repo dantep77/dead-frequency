@@ -396,6 +396,41 @@ export class Firearm {
     return false;
   }
 
+  // Non-mutating twin of loadRound(): would the gun accept a loose round right now?
+  canLoadRound() {
+    const D = this.def; if (this.broken) return false;
+    if (D.action === 'revolver') return D.revolver === 'da' ? this.cylOpen && this.cyl.includes(null) : this.gateOpen && this.hammer === 1 && this.cyl[this.loadIndex] === null;
+    const open = this.isAuto ? this.slideLocked : this.slide >= 0.9, canStage = open && this.chamber === null && !this.staged && !this.lifter && !this.jam;
+    if (D.feed === 'tube') return (canStage && (D.action === 'pump' || this.internal === 0)) || this.internal < D.cap;
+    if (D.feed === 'internal') return open && (this.internal < D.cap || canStage);
+    return canStage;
+  }
+  // Which controls will physically move right now. This is about what the hands can operate, not
+  // whether a shot will result: it never reveals the chamber, the round count or the nature of a stoppage.
+  // ctx: { handMag: magazine in the support hand or null, loose: loose rounds of this calibre carried }
+  available(ctx = {}) {
+    const D = this.def, a = { trigger: false, action: false, slideStop: false, mag: false, tap: false, loadRound: false, safety: false, hammer: false, wheel: false };
+    if (this.broken) { a.mag = D.feed === 'mag' && !!this.mag; return a; }
+    if (D.action === 'revolver') {
+      const da = D.revolver === 'da';
+      a.trigger = !this.cylOpen && this.jam !== 'bind' && (da || (this.hammer === 2 && !this.gateOpen));
+      a.mag = da ? (this.cylOpen || this.hammer !== 2) : true;
+      a.tap = da ? this.cylOpen : (this.gateOpen && this.hammer === 1);
+      a.wheel = da ? this.cylOpen : (this.gateOpen && this.hammer === 1);
+      a.hammer = !this.cylOpen && this.jam !== 'bind' && this.hammer < 2;
+    } else {
+      const closed = this.isAuto ? this.inBattery : this.slide <= 0.02;
+      a.trigger = !this.safety && closed && (this.hammer === 2 || (this.isAuto && D.trigger === 'dasa'));
+      a.action = !(D.safetyLocksSlide && this.safety) && !(D.action === 'pump' && this.actionLocked && this.slide <= 0.001);
+      a.slideStop = this.isAuto ? (this.slideLocked || (this.grabbed && this.slide >= 0.85)) : (D.action === 'pump' && this.actionLocked);
+      if (D.feed === 'mag') { a.mag = this.mag ? true : !!(ctx.handMag && ctx.handMag.type === D.magType); a.tap = !!this.mag; }
+      if (D.safety && D.safety !== 'none') a.safety = this.safety || D.safety === 'decocker' || ((!D.safetyNeedsCock || this.hammer === 2) && !(D.safetyLocksSlide && this.slide > 0.02));
+      a.hammer = !!D.extHammer && this.hammer < 2 && !(this.safety && D.safety === 'decocker');
+    }
+    a.loadRound = (ctx.loose || 0) > 0 && this.canLoadRound();
+    return a;
+  }
+
   // ---------- randomised found/starting state ----------
   randomize(rng, opts = {}) {
     const D = this.def, r = () => rng.next();

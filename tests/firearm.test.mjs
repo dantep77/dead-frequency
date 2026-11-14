@@ -115,4 +115,17 @@ let n = 0; const ok = (name) => { n++; console.log('  ok  ' + name); };
       assert(f.slide >= 0 && f.slide <= 1);
     } }
   ok('wear scaling, catastrophic failure, ammunition conservation fuzz'); }
+// --- available(): highlights only controls that would physically move, and never changes state
+{ const f = mk('m1911'); let a = f.available({ handMag: makeMag('m1911', 7), loose: 5 });
+  assert(a.mag && !a.trigger && a.hammer && a.action && !a.safety && !a.slideStop && !a.tap && !a.loadRound, 'empty 1911, hammer down');
+  f.insertMag(makeMag('m1911', 1)); rack(f); a = f.available({}); assert(a.trigger && a.safety && a.tap && a.mag && !a.hammer);
+  f.toggleSafety(); a = f.available({}); assert(!a.trigger && !a.action && a.safety, 'safety locks trigger and slide');
+  f.toggleSafety(); pull(f); a = f.available({ loose: 3 }); assert(a.slideStop && a.loadRound && !a.trigger, 'locked back: stop lever and port load');
+  const p = mk('r870'); p.loadRound(); pump(p); a = p.available({ loose: 2 }); assert(a.trigger && !a.action && a.slideStop && a.loadRound, 'cocked 870: action locked, release available');
+  const r = mk('model10'); a = r.available({ loose: 6 }); assert(a.trigger && a.mag && a.hammer && !a.tap && !a.wheel && !a.loadRound); r.cylinderKey(); a = r.available({ loose: 6 }); assert(!a.trigger && a.tap && a.wheel && a.loadRound && !a.hammer);
+  const s = mk('saa'); a = s.available({ loose: 6 }); assert(!a.trigger && a.hammer && !a.loadRound); s.hammerKey(); s.cylinderKey(); a = s.available({ loose: 6 }); assert(a.loadRound && a.wheel && a.tap);
+  // a jam is not announced: the same controls light up as for a healthy, in-battery gun with the slide moved
+  const j = mk('g17'); j.insertMag(makeMag('g17', 5)); rack(j); const before = JSON.stringify(j); j.available({ loose: 1 }); j.canLoadRound(); assert.equal(JSON.stringify(j), before, 'available() must not mutate');
+  for (const id of Object.keys(WEAPONS)) { const g = mk(id); const snap = JSON.stringify(g); const av = g.available({ loose: 3 }); assert.equal(JSON.stringify(g), snap); assert.equal(av.loadRound, g.canLoadRound()); const g2 = mk(id); assert.equal(g2.canLoadRound(), g2.loadRound(), id + ' canLoadRound matches loadRound'); }
+  ok('control availability (quick reference)'); }
 console.log(`firearm tests passed (${n} groups)`);
